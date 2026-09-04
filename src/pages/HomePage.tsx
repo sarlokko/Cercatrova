@@ -1,12 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  type Category,
-  categoryLabel,
-  deals,
-  formatPrice,
-  kindLabel,
-} from '../data/deals'
+import { DealRow } from '../components/DealRow'
+import { type Category, deals } from '../data/deals'
+import { searchDeals } from '../lib/search'
 
 const filters: Array<{ id: 'all' | Category; label: string }> = [
   { id: 'all', label: 'Tutto il radar' },
@@ -15,22 +11,22 @@ const filters: Array<{ id: 'all' | Category; label: string }> = [
   { id: 'gaming', label: 'Gaming free' },
 ]
 
-function thumbLabel(title: string) {
-  return title
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-}
-
 export function HomePage() {
   const [filter, setFilter] = useState<'all' | Category>('all')
+  const [query, setQuery] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const deferredQuery = useDeferredValue(query)
 
   const visible = useMemo(() => {
-    const list = filter === 'all' ? deals : deals.filter((d) => d.category === filter)
-    return [...list].sort((a, b) => b.discountPct - a.discountPct)
-  }, [filter])
+    const max = maxPrice.trim() === '' ? null : Number(maxPrice)
+    return searchDeals({
+      query: deferredQuery,
+      mode: deferredQuery.trim().split(/\s+/).length >= 3 ? 'specifico' : 'generico',
+      category: filter,
+      maxPrice: max != null && Number.isFinite(max) ? max : null,
+      onlyFree: false,
+    })
+  }, [filter, deferredQuery, maxPrice])
 
   return (
     <>
@@ -52,15 +48,15 @@ export function HomePage() {
           </p>
           <h1 className="hero__headline">Ti avviso solo quando il prezzo è quello giusto.</h1>
           <p className="hero__lead">
-            Confronto negozi + storico prezzi + alert intelligenti. Niente rumore: solo gratis,
-            minimi storici e cali veri.
+            Cerca in modo generico o specifico, metti un limite di prezzo e ricevi l’alert su
+            Telegram.
           </p>
           <div className="hero__actions">
             <a className="btn btn-primary" href="#radar">
-              Apri il radar
+              Cerca nel radar
             </a>
-            <Link className="btn btn-ghost" to="/monitora">
-              Monitora un prodotto
+            <Link className="btn btn-ghost" to="/cerca">
+              Alert Telegram
             </Link>
           </div>
         </div>
@@ -70,9 +66,41 @@ export function HomePage() {
         <div className="section__head">
           <h2>Deal Radar</h2>
           <p>
-            Un unico motore che filtra internet per segnale: software che diventa gratis, NAS e
-            storage al prezzo target, giochi gratis che valgono davvero.
+            Filtra per testo, categoria e prezzo massimo. Poi salva la ricerca con notifica
+            Telegram dalla pagina Cerca.
           </p>
+        </div>
+
+        <div className="radar-search">
+          <label className="sr-only" htmlFor="radar-q">
+            Cerca offerte
+          </label>
+          <input
+            id="radar-q"
+            className="radar-search__input"
+            placeholder="Cerca: HDD NAS, Synology, lifetime, gratis…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            list="radar-suggestions"
+          />
+          <datalist id="radar-suggestions">
+            {deals.map((d) => (
+              <option key={d.id} value={d.title} />
+            ))}
+          </datalist>
+          <label className="sr-only" htmlFor="radar-max">
+            Prezzo massimo
+          </label>
+          <input
+            id="radar-max"
+            className="radar-search__max"
+            type="number"
+            min={0}
+            step="0.01"
+            placeholder="Max €"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+          />
         </div>
 
         <div className="filters" role="tablist" aria-label="Categorie">
@@ -90,44 +118,23 @@ export function HomePage() {
           ))}
         </div>
 
+        <p className="results-count" style={{ marginBottom: '0.85rem' }}>
+          {visible.length} risultat{visible.length === 1 ? 'o' : 'i'}
+        </p>
+
         <div className="deal-list">
-          {visible.map((deal) => (
-            <Link key={deal.id} to={`/prodotto/${deal.id}`} className="deal-row">
-              <div className="deal-thumb" style={{ background: deal.imageTone }}>
-                {thumbLabel(deal.title)}
-              </div>
-              <div className="deal-meta">
-                <h3>{deal.title}</h3>
-                <p>{deal.subtitle}</p>
-                <div className="deal-tags">
-                  <span
-                    className={`tag${deal.kind === 'gratis' || deal.kind === 'errore' ? (deal.kind === 'errore' ? ' tag--alert' : ' tag--signal') : deal.kind === 'scade' ? ' tag--alert' : ''}`}
-                  >
-                    {kindLabel[deal.kind]}
-                  </span>
-                  <span className="tag">{categoryLabel[deal.category]}</span>
-                  {deal.expiresAt ? <span className="tag">Scade {deal.expiresAt}</span> : null}
-                </div>
-              </div>
-              <div className="deal-price">
-                <div className={`deal-price__now${deal.isFree ? ' free' : ''}`}>
-                  {formatPrice(deal.currentPrice, deal.currency)}
-                </div>
-                {!deal.isFree ? (
-                  <div className="deal-price__was">
-                    {formatPrice(deal.normalPrice, deal.currency)}
-                  </div>
-                ) : (
-                  <div className="deal-price__was">
-                    di solito {formatPrice(deal.normalPrice, deal.currency)}
-                  </div>
-                )}
-                <div className="deal-price__delta">
-                  {deal.isFree ? '100% risparmio' : `−${deal.discountPct}%`}
-                </div>
-              </div>
-            </Link>
-          ))}
+          {visible.length === 0 ? (
+            <p className="watch-empty">Nessun risultato con questi filtri.</p>
+          ) : (
+            visible.map((deal) => <DealRow key={deal.id} deal={deal} />)
+          )}
+        </div>
+
+        <div className="inline-cta">
+          <p>Vuoi essere avvisato su Telegram quando scende sotto il tuo budget?</p>
+          <Link className="btn btn-primary" to="/cerca">
+            Imposta ricerca + Telegram
+          </Link>
         </div>
       </section>
 
@@ -135,33 +142,32 @@ export function HomePage() {
         <div className="section__head">
           <h2>Come funziona</h2>
           <p>
-            Unisce ciò che fai con Trovaprezzi e CamelCamelCamel: confronti i negozi, leggi lo
-            storico, imposti il prezzo target. Il resto lo fa il radar.
+            Unisce Trovaprezzi e CamelCamelCamel: cerchi (generico o specifico), confronti i
+            negozi, imposti il limite e ricevi solo il segnale utile.
           </p>
         </div>
         <div className="steps">
           <article className="step">
             <div className="step__n">01</div>
-            <h3>Cerchi o segui</h3>
+            <h3>Cerchi</h3>
             <p>
-              Incolli un link Amazon/negozio oppure sfogli il radar per categoria: software free,
-              NAS/HDD/SSD/RAM, gaming free.
+              Generico (“HDD 12TB per NAS”) o specifico (“WD Red Plus 12TB”), con categoria e
+              prezzo massimo.
             </p>
           </article>
           <article className="step">
             <div className="step__n">02</div>
-            <h3>Confronti e storicizzi</h3>
+            <h3>Confronti</h3>
             <p>
-              Vedi i prezzi tra merchant, la media e il minimo a 6 mesi. Capisci subito se è un
-              affare o rumore.
+              Vedi merchant, media e minimo a 6 mesi. Capisci subito se è un affare o rumore.
             </p>
           </article>
           <article className="step">
             <div className="step__n">03</div>
-            <h3>Ricevi solo il segnale</h3>
+            <h3>Ti avvisiamo</h3>
             <p>
-              Alert quando scende al tuo target, diventa gratis, batte il minimo storico o sta per
-              scadere. Niente spam di offerte qualunque.
+              Alert Telegram (o in-app) solo quando scende sotto il tuo limite, diventa gratis o
+              batte il minimo storico.
             </p>
           </article>
         </div>
@@ -172,23 +178,22 @@ export function HomePage() {
           <div className="section__head" style={{ marginBottom: 0 }}>
             <h2>Il filtro, non la categoria</h2>
             <p>
-              Non siamo un altro canale hardware o AI news. Cerchiamo cose che diventano gratis,
-              calano dell’80%+, errori di prezzo, coupon nascosti e minimi storici — e te lo
-              diciamo solo allora.
+              Non un altro canale di offerte random. Tu definisci cosa cerchi e il tetto di spesa:
+              il radar elimina il rumore.
             </p>
           </div>
           <div className="split__visual" aria-hidden>
             <div className="bubble bubble--1">
-              <strong>Gratis</strong>
-              <span>Software da 49 € → 0 €</span>
+              <strong>Generico</strong>
+              <span>HDD NAS sotto 180 €</span>
             </div>
             <div className="bubble bubble--2">
-              <strong>Minimo 6 mesi</strong>
-              <span>WD Red Plus 12TB €179,90</span>
+              <strong>Specifico</strong>
+              <span>WD Red Plus 12TB</span>
             </div>
             <div className="bubble bubble--3">
-              <strong>Scade oggi</strong>
-              <span>−80% o più, solo se vale</span>
+              <strong>Telegram</strong>
+              <span>Solo al prezzo giusto</span>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Footer, Header } from './components/Layout'
 import { HomePage } from './pages/HomePage'
 import { MonitorPage } from './pages/MonitorPage'
@@ -13,7 +13,8 @@ export default function App() {
         <main className="site-main">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/monitora" element={<MonitorPage />} />
+            <Route path="/cerca" element={<MonitorPage />} />
+            <Route path="/monitora" element={<Navigate to="/cerca" replace />} />
             <Route path="/prodotto/:id" element={<ProductPage />} />
           </Routes>
         </main>

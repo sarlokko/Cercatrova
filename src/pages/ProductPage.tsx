@@ -7,13 +7,22 @@ import {
   getDeal,
   kindLabel,
 } from '../data/deals'
-import { addWatch, type WatchItem } from '../lib/watchlist'
+import {
+  addWatch,
+  getTelegramPrefs,
+  normalizeTelegramUser,
+  saveTelegramPrefs,
+  telegramBotStartUrl,
+  type WatchItem,
+} from '../lib/watchlist'
 
 export function ProductPage() {
   const { id = '' } = useParams()
   const deal = getDeal(id)
+  const prefs = getTelegramPrefs()
   const [target, setTarget] = useState('')
-  const [email, setEmail] = useState('')
+  const [wantTelegram, setWantTelegram] = useState(Boolean(prefs?.username))
+  const [telegram, setTelegram] = useState(prefs?.username ?? '')
   const [toast, setToast] = useState<string | null>(null)
 
   const suggested = useMemo(() => {
@@ -37,17 +46,29 @@ export function ProductPage() {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
     const price = Number(target || suggested)
+    if (wantTelegram && !telegram.trim()) {
+      setToast('Inserisci il tuo @username Telegram.')
+      return
+    }
+    const tg = wantTelegram ? normalizeTelegramUser(telegram) : ''
+    if (tg) saveTelegramPrefs({ username: tg, linkedAt: new Date().toISOString() })
+
     const item: WatchItem = {
       id: deal.id,
       title: deal.title,
       targetPrice: price,
-      email: email.trim() || undefined,
+      telegram: tg || undefined,
+      notify: wantTelegram ? 'telegram' : 'none',
+      mode: 'specifico',
+      category: deal.category,
+      query: deal.title,
       createdAt: new Date().toISOString(),
+      note: 'Prodotto specifico',
     }
     addWatch(item)
     setToast(
-      price === 0
-        ? 'Alert attivo: ti avvisiamo quando torna gratis o a 0 €.'
+      wantTelegram
+        ? `Alert Telegram attivo sotto ${formatPrice(price, deal.currency)} → ${tg}`
         : `Alert attivo sotto ${formatPrice(price, deal.currency)}.`,
     )
   }
@@ -116,9 +137,9 @@ export function ProductPage() {
           <form className="alert-card" onSubmit={onSubmit}>
             <h2>Alert al prezzo giusto</h2>
             <p>
-              Dimmi il target. Ti avvisiamo solo quando scende lì — non a ogni piccola oscillazione.
+              Limite di prezzo + opzione Telegram. Ti avvisiamo solo quando scende lì.
             </p>
-            <label htmlFor="target">Prezzo target (€)</label>
+            <label htmlFor="target">Limite prezzo (€)</label>
             <input
               id="target"
               type="number"
@@ -128,14 +149,39 @@ export function ProductPage() {
               value={target}
               onChange={(e) => setTarget(e.target.value)}
             />
-            <label htmlFor="email">Email o Telegram (opzionale)</label>
-            <input
-              id="email"
-              type="text"
-              placeholder="tu@email.it oppure @username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <label className="check-label check-label--light" htmlFor="tg-product">
+              <input
+                id="tg-product"
+                type="checkbox"
+                checked={wantTelegram}
+                onChange={(e) => setWantTelegram(e.target.checked)}
+              />
+              Notifica Telegram
+            </label>
+            {wantTelegram ? (
+              <>
+                <label htmlFor="tg-user">Username Telegram</label>
+                <input
+                  id="tg-user"
+                  type="text"
+                  placeholder="@username"
+                  value={telegram}
+                  onChange={(e) => setTelegram(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  style={{ width: '100%', marginBottom: '0.85rem', color: '#eefae6', borderColor: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)' }}
+                  onClick={() => {
+                    const tg = normalizeTelegramUser(telegram)
+                    if (tg) saveTelegramPrefs({ username: tg, linkedAt: new Date().toISOString() })
+                    window.open(telegramBotStartUrl(`p_${deal.id}`), '_blank', 'noopener,noreferrer')
+                  }}
+                >
+                  Collega bot Telegram
+                </button>
+              </>
+            ) : null}
             <button className="btn btn-primary" type="submit">
               Attiva monitoraggio
             </button>

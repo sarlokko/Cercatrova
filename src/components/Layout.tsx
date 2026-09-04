@@ -47,17 +47,17 @@ export function Header() {
           <NavLink to="/" end onClick={() => setOpen(false)}>
             Radar
           </NavLink>
-          <NavLink to="/monitora" onClick={() => setOpen(false)}>
-            Monitora
+          <NavLink to="/cerca" onClick={() => setOpen(false)}>
+            Cerca
           </NavLink>
           <a href="/#come-funziona" onClick={() => setOpen(false)}>
             Come funziona
           </a>
         </nav>
 
-        <Link to="/monitora" className="nav-cta">
+        <Link to="/cerca" className="nav-cta">
           <span className="nav-cta__dot" aria-hidden />
-          Imposta alert
+          Cerca + Telegram
         </Link>
       </div>
     </header>

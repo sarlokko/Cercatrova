@@ -4,10 +4,11 @@ Pagina web pubblica che unisce **confronto prezzi** (stile Trovaprezzi) e **moni
 
 ## Cosa fa
 
-- **Deal Radar**: feed filtrato di segnali (gratis, −80%+, minimo storico, errore prezzo, coupon, scade oggi)
-- **Nicchie**: Software / SaaS / AI free, NAS + HDD + SSD + RAM, Gaming free (≥20 €)
-- **Scheda prodotto**: storico prezzi, media, minimo 6 mesi, confronto merchant
-- **Monitora**: imposta prezzo target e salva alert in locale (demo)
+- **Cerca**: modalità **generica** (es. “HDD NAS”) o **specifica** (modello esatto)
+- **Limite prezzo** e filtro “solo gratis”
+- **Deal Radar** con ricerca live + categorie
+- **Notifiche Telegram** (UI + deep link bot; invio reale via Bot API in produzione)
+- Scheda prodotto con storico, media, minimo 6 mesi e confronto merchant
 
 ## Avvio
 
@@ -25,4 +26,4 @@ npm run preview
 
 ## Stack
 
-Vite + React + TypeScript. Dati demo in `src/data/deals.ts` (pronti da sostituire con API affiliate / scrapers / bot Telegram).
+Vite + React + TypeScript. Dati demo in `src/data/deals.ts`.
