@@ -1,18 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-
-function BrandMark() {
-  return (
-    <span className="brand__mark" aria-hidden>
-      <svg viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="8" stroke="#9ef01a" strokeWidth="1.4" opacity="0.4" />
-        <circle cx="12" cy="12" r="4.5" stroke="#9ef01a" strokeWidth="1.4" opacity="0.7" />
-        <circle cx="12" cy="12" r="1.6" fill="#9ef01a" />
-        <path d="M12 12L18.5 5.5" stroke="#9ef01a" strokeWidth="1.6" strokeLinecap="round" />
-      </svg>
-    </span>
-  )
-}
+import { BrandMark, BRAND_NAME } from './BrandMark'
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false)
@@ -29,8 +17,10 @@ export function Header() {
     <header className={`site-header${scrolled ? ' scrolled' : ''}`}>
       <div className="site-header__inner">
         <Link to="/" className="brand" onClick={() => setOpen(false)}>
-          <BrandMark />
-          Cercatrova
+          <BrandMark size={34} />
+          <span className="brand__text">
+            <span className="brand__il">Il</span> Cerca-Trova
+          </span>
         </Link>
 
         <button
@@ -69,7 +59,7 @@ export function Footer() {
     <footer className="site-footer">
       <div className="site-footer__inner">
         <div>
-          <strong>Cercatrova</strong>
+          <strong>{BRAND_NAME}</strong>
           <p>Confronto prezzi + storico + alert. Solo il segnale utile.</p>
         </div>
         <p>Demo pubblica · dati di esempio · affiliate-ready</p>

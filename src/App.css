@@ -35,24 +35,36 @@
   gap: 0.65rem;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.12rem;
   letter-spacing: -0.04em;
 }
 
+.brand__text {
+  line-height: 1.05;
+}
+
+.brand__il {
+  font-weight: 650;
+  opacity: 0.72;
+  margin-right: 0.15em;
+}
+
 .brand__mark {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.55rem;
-  background: var(--ink);
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.65rem;
   display: grid;
   place-items: center;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(16, 42, 39, 0.18);
 }
 
 .brand__mark svg {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .nav-links {
@@ -256,17 +268,38 @@
 .hero__content {
   position: relative;
   z-index: 2;
-  max-width: 38rem;
+  max-width: 40rem;
   animation: rise 0.7s ease both;
+}
+
+.hero__brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.hero__mark {
+  flex-shrink: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 14px 32px rgba(16, 42, 39, 0.2);
+  animation: rise 0.7s ease both;
+}
+
+.hero__mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .hero__brand {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(3.4rem, 11vw, 6.2rem);
-  line-height: 0.92;
+  font-size: clamp(2.4rem, 8vw, 4.4rem);
+  line-height: 0.95;
   letter-spacing: -0.055em;
-  margin-bottom: 1.1rem;
+  margin: 0;
 }
 
 .hero__brand span {
@@ -275,6 +308,11 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.hero__brand em {
+  font-style: normal;
+  font-weight: 800;
 }
 
 .hero__headline {

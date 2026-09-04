@@ -1,5 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { BrandMark } from '../components/BrandMark'
 import { DealRow } from '../components/DealRow'
 import { type Category, deals } from '../data/deals'
 import { searchDeals } from '../lib/search'
@@ -43,9 +44,14 @@ export function HomePage() {
         </div>
 
         <div className="hero__content">
-          <p className="hero__brand">
-            <span>Cercatrova</span>
-          </p>
+          <div className="hero__brand-row">
+            <BrandMark size={56} className="hero__mark" />
+            <p className="hero__brand">
+              <span>
+                Il <em>Cerca-Trova</em>
+              </span>
+            </p>
+          </div>
           <h1 className="hero__headline">Ti avviso solo quando il prezzo è quello giusto.</h1>
           <p className="hero__lead">
             Cerca in modo generico o specifico, metti un limite di prezzo e ricevi l’alert su

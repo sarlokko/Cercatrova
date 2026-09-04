@@ -1,4 +1,4 @@
-# Cercatrova
+# Il Cerca-Trova
 
 Pagina web pubblica che unisce **confronto prezzi** (stile Trovaprezzi) e **monitoraggio/alert** (stile CamelCamelCamel).
 
