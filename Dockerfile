@@ -13,10 +13,9 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY server ./server
-ENV PORT=80 DATA_DIR=/data
-RUN mkdir -p /data
-EXPOSE 80
-VOLUME /data
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
-  CMD node -e "fetch('http://127.0.0.1/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+ENV PORT=80 DATA_DIR=/app/data
+RUN mkdir -p /app/data && chmod 777 /app/data
+EXPOSE 80 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
+  CMD node -e "Promise.any([80,8080].map(p=>fetch('http://127.0.0.1:'+p+'/api/health'))).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "server/index.mjs"]

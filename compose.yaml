@@ -1,13 +1,6 @@
-version: "3.8"
 services:
   web:
     image: ghcr.io/sarlokko/cercatrova:latest
     ports:
       - "8787:80"
     restart: unless-stopped
-    volumes:
-      - ./data:/data
-    environment:
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      TELEGRAM_BOT_NAME: CercatrovaBot
-      PLUS_KEY: ${PLUS_KEY:-}

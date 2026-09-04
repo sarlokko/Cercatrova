@@ -1,14 +1,47 @@
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { SEED_PRODUCTS } from './catalog.mjs'
 
-const dataDir = process.env.DATA_DIR || join(process.cwd(), 'data')
-mkdirSync(dataDir, { recursive: true })
+function canWrite(dir) {
+  mkdirSync(dir, { recursive: true })
+  const probe = join(dir, '.write-test')
+  writeFileSync(probe, 'ok')
+  unlinkSync(probe)
+  return true
+}
 
-export const db = new DatabaseSync(join(dataDir, 'cercatrova.sqlite'))
-db.exec('PRAGMA journal_mode = WAL')
-db.exec('PRAGMA foreign_keys = ON')
+function openDatabase() {
+  const candidates = [
+    process.env.DATA_DIR,
+    join(process.cwd(), 'data'),
+    '/app/data',
+    '/data',
+    '/tmp/cercatrova',
+  ].filter(Boolean)
+
+  for (const dir of candidates) {
+    try {
+      canWrite(dir)
+      const path = join(dir, 'cercatrova.sqlite')
+      const database = new DatabaseSync(path)
+      // DELETE, non WAL: i bind-mount NAS/CIFS fanno crashare WAL all’avvio.
+      database.exec('PRAGMA journal_mode = DELETE')
+      database.exec('PRAGMA foreign_keys = ON')
+      console.log(`sqlite ok ${path}`)
+      return database
+    } catch (err) {
+      console.error(`sqlite no ${dir}: ${err.message}`)
+    }
+  }
+
+  console.error('sqlite fallback :memory: (i watch non sopravvivono al restart)')
+  const memory = new DatabaseSync(':memory:')
+  memory.exec('PRAGMA foreign_keys = ON')
+  return memory
+}
+
+export const db = openDatabase()
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS products (

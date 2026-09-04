@@ -194,9 +194,29 @@ if (existsSync(dist)) {
   app.get('/*', serveStatic({ path: './dist/index.html' }))
 }
 
-const port = Number(process.env.PORT || 8788)
-serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
-  console.log(`Cercatrova API http://0.0.0.0:${info.port}`)
+function listen(ports) {
+  const port = ports.shift()
+  if (port == null) {
+    console.error('nessuna porta libera')
+    process.exit(1)
+  }
+  const server = serve({ fetch: app.fetch, port, hostname: '0.0.0.0' }, (info) => {
+    console.log(`Cercatrova http://0.0.0.0:${info.port}`)
+  })
+  server.on('error', (err) => {
+    console.error(`porta ${port}: ${err.code || err.message}`)
+    listen(ports)
+  })
+}
+
+const preferred = Number(process.env.PORT || 80)
+listen([...new Set([preferred, 80, 8080, 8787])].filter((p) => Number.isFinite(p) && p > 0))
+
+process.on('uncaughtException', (err) => {
+  console.error('uncaught', err)
+})
+process.on('unhandledRejection', (err) => {
+  console.error('unhandled', err)
 })
 
 startPolling()
