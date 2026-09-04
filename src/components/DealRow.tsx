@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom'
 import {
   type Deal,
   categoryLabel,
+  formatDealPrice,
   formatPrice,
   kindLabel,
+  priceDeltaLabel,
 } from '../data/deals'
 
 function thumbLabel(title: string) {
@@ -32,11 +34,13 @@ export function DealRow({ deal }: Props) {
         <div className="deal-tags">
           <span
             className={`tag${
-              deal.kind === 'gratis' || deal.kind === 'listino'
+              deal.kind === 'gratis' || deal.kind === 'listino' || deal.kind === 'monitora'
                 ? ' tag--signal'
                 : deal.kind === 'errore' || deal.kind === 'scade'
                   ? ' tag--alert'
-                  : ''
+                  : deal.kind === 'lookup'
+                    ? ' tag--lookup'
+                    : ''
             }`}
           >
             {kindLabel[deal.kind]}
@@ -46,19 +50,15 @@ export function DealRow({ deal }: Props) {
         </div>
       </div>
       <div className="deal-price">
-        <div className={`deal-price__now${deal.isFree ? ' free' : ''}`}>
-          {formatPrice(deal.currentPrice, deal.currency)}
+        <div
+          className={`deal-price__now${deal.isFree ? ' free' : ''}${deal.priceUnknown ? ' unknown' : ''}`}
+        >
+          {formatDealPrice(deal)}
         </div>
-        {deal.discountPct > 0 ? (
-          <>
-            <div className="deal-price__was">{formatPrice(deal.normalPrice, deal.currency)}</div>
-            <div className="deal-price__delta">
-              {deal.isFree ? '100% risparmio' : `−${deal.discountPct}%`}
-            </div>
-          </>
-        ) : (
-          <div className="deal-price__delta">prezzo di mercato</div>
-        )}
+        {deal.discountPct > 0 && !deal.priceUnknown ? (
+          <div className="deal-price__was">{formatPrice(deal.normalPrice, deal.currency)}</div>
+        ) : null}
+        <div className="deal-price__delta">{priceDeltaLabel(deal)}</div>
       </div>
     </Link>
   )

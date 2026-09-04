@@ -1,4 +1,11 @@
-import { type Category, type Deal, categoryLabel, deals } from '../data/deals'
+import {
+  type Category,
+  type Deal,
+  categoryLabel,
+  deals,
+  guessCategory,
+  makeLookupDeal,
+} from '../data/deals'
 
 export type SearchMode = 'generico' | 'specifico'
 
@@ -32,12 +39,15 @@ const GROUPS: string[][] = [
   ['hdd', 'harddisk', 'disco', 'rigido', 'ironwolf', 'cmr'],
   ['ssd', 'nvme'],
   ['ram', 'memoria', 'sodimm', 'ddr', 'ddr4', 'crucial'],
-  ['nas', 'synology', 'qnap', 'terramaster', 'storage', 'bay', 'ds224'],
+  ['nas', 'synology', 'qnap', 'terramaster', 'ugreen', 'ugos', 'nasync', 'storage', 'bay', 'ds224'],
+  ['ugreen', 'ugos', 'nasync', 'dxp', 'dxp2800', '2800', 'dxp4800', '4800'],
   ['gratis', 'free', 'zero', 'omaggio'],
   ['lifetime', 'licenza', 'perpetua'],
   ['ai', 'crediti', 'midjourney'],
   ['mac', 'macos', 'cleanmymac'],
-  ['gioco', 'giochi', 'game', 'games', 'steam', 'epic'],
+  ['gioco', 'giochi', 'game', 'games', 'steam', 'epic', 'gog', 'humble', 'videogioco'],
+  ['android', 'play', 'playstore'],
+  ['ios', 'iphone', 'ipad', 'appstore'],
   ['coupon', 'sconto', 'promo', 'offerta'],
 ]
 
@@ -72,10 +82,21 @@ function haystack(deal: Deal) {
   )
 }
 
+function withinBudget(deal: Deal, filters: SearchFilters) {
+  if (filters.onlyFree && !deal.isFree) return false
+  if (
+    filters.maxPrice != null &&
+    !deal.priceUnknown &&
+    !deal.isFree &&
+    deal.currentPrice > filters.maxPrice
+  ) {
+    return false
+  }
+  return true
+}
+
 function scoreDeal(deal: Deal, filters: SearchFilters): number {
   if (filters.category !== 'all' && deal.category !== filters.category) return -1
-  if (filters.onlyFree && !deal.isFree) return -1
-  if (filters.maxPrice != null && deal.currentPrice > filters.maxPrice) return -1
 
   const q = filters.query.trim()
   if (!q) return 1
@@ -107,27 +128,42 @@ function scoreDeal(deal: Deal, filters: SearchFilters): number {
 }
 
 export function matchesDeal(deal: Deal, filters: SearchFilters): boolean {
-  return scoreDeal(deal, filters) >= 0
+  return scoreDeal(deal, filters) >= 0 && withinBudget(deal, filters)
 }
 
 export function searchDeals(filters: SearchFilters, source: Deal[] = deals): Deal[] {
-  return source
+  const scored = source
     .map((d) => ({ d, s: scoreDeal(d, filters) }))
     .filter((x) => x.s >= 0)
+
+  const ranked = scored
+    .filter((x) => withinBudget(x.d, filters))
     .sort((a, b) => {
       if (b.s !== a.s) return b.s - a.s
+      if (a.d.priceUnknown !== b.d.priceUnknown) return a.d.priceUnknown ? 1 : -1
       if (a.d.currentPrice !== b.d.currentPrice) return a.d.currentPrice - b.d.currentPrice
       return b.d.discountPct - a.d.discountPct
     })
     .map((x) => x.d)
+
+  if (ranked.length > 0) return ranked
+  if (scored.length > 0) return []
+
+  const q = filters.query.trim()
+  if (q.length >= 2 && !filters.onlyFree) {
+    const category = filters.category === 'all' ? guessCategory(q) : filters.category
+    return [makeLookupDeal(q, category)]
+  }
+
+  return []
 }
 
 export const genericSuggestions = [
+  { label: 'UGREEN NAS', query: 'ugreen 2800', category: 'nas' as const },
   { label: 'HDD NAS', query: 'hdd nas', category: 'nas' as const },
   { label: 'SSD NVMe', query: 'ssd nvme', category: 'nas' as const },
-  { label: 'RAM SODIMM', query: 'ram sodimm', category: 'nas' as const },
+  { label: 'Steam in sconto', query: 'steam sconto', category: 'steam' as const },
+  { label: 'App Android', query: 'android a pagamento', category: 'android' as const },
+  { label: 'App iOS', query: 'ios a pagamento', category: 'ios' as const },
   { label: 'Software gratis', query: 'software gratis', category: 'software' as const },
-  { label: 'Lifetime deal', query: 'lifetime', category: 'software' as const },
-  { label: 'AI crediti', query: 'ai crediti', category: 'software' as const },
-  { label: 'Giochi gratis PC', query: 'giochi gratis pc', category: 'gaming' as const },
 ]

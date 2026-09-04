@@ -60,7 +60,7 @@ export function Footer() {
       <div className="site-footer__inner">
         <div>
           <strong>{BRAND_NAME}</strong>
-          <p>Confronto prezzi + storico + alert. Solo il segnale utile.</p>
+          <p>Cerca anche fuori offerta: NAS, Steam, Android e iOS. Poi l’alert.</p>
         </div>
         <p>Demo · prezzi hardware allineati ai listini pubblici (sett. 2026), non in tempo reale.</p>
       </div>

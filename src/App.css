@@ -518,6 +518,11 @@
   color: #9b2418;
 }
 
+.tag--lookup {
+  background: rgba(26, 18, 12, 0.08);
+  color: var(--ink);
+}
+
 .deal-price {
   text-align: right;
   min-width: 7.5rem;
@@ -532,6 +537,12 @@
 
 .deal-price__now.free {
   color: var(--found);
+}
+
+.deal-price__now.unknown,
+.price-board__now.unknown {
+  color: var(--ink-soft);
+  font-size: 1.15rem;
 }
 
 .deal-price__was {

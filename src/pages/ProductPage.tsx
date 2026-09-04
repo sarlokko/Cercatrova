@@ -4,6 +4,8 @@ import { PriceChart } from '../components/PriceChart'
 import {
   categoryLabel,
   formatCheckedAt,
+  formatDealPrice,
+  formatMerchantPrice,
   formatPrice,
   getDeal,
   kindLabel,
@@ -30,7 +32,12 @@ export function ProductPage() {
   const suggested = useMemo(() => {
     if (!deal) return ''
     if (deal.isFree) return '0'
-    return Math.max(0, Math.round(deal.minPrice6m * 0.98 * 100) / 100).toString()
+    if (deal.category === 'android' || deal.category === 'ios') return '0'
+    if (deal.priceUnknown) return ''
+    if (deal.minPrice6m > 0) {
+      return Math.max(0, Math.round(deal.minPrice6m * 0.98 * 100) / 100).toString()
+    }
+    return deal.currentPrice > 0 ? String(deal.currentPrice) : ''
   }, [deal])
 
   if (!deal) {
@@ -40,7 +47,7 @@ export function ProductPage() {
           ← Torna al radar
         </Link>
         <h1>Prodotto non trovato</h1>
-        <p>Questo segnale non è più nel radar demo.</p>
+        <p>Questo prodotto non è in catalogo. Torna alla ricerca e scrivi il modello.</p>
       </div>
     )
   }
@@ -96,28 +103,41 @@ export function ProductPage() {
           <h1>{deal.title}</h1>
           <p>{deal.subtitle}</p>
           <p className="field-hint" style={{ marginBottom: '1rem' }}>
-            Snapshot del {formatCheckedAt(deal.checkedAt)}. Il totale in cassa è quello del negozio,
-            oggi.
+            {deal.lookup
+              ? 'Non era nel radar: ti mostriamo i negozi giusti. Nessun prezzo inventato.'
+              : `Snapshot del ${formatCheckedAt(deal.checkedAt)}. Il totale in cassa è quello del negozio, oggi.`}
           </p>
 
           <div className="price-board">
-            <div className={`price-board__now${deal.isFree ? ' free' : ''}`}>
-              {formatPrice(deal.currentPrice, deal.currency)}
+            <div
+              className={`price-board__now${deal.isFree ? ' free' : ''}${deal.priceUnknown ? ' unknown' : ''}`}
+            >
+              {formatDealPrice(deal)}
             </div>
-            {deal.discountPct > 0 ? (
+            {deal.discountPct > 0 && !deal.priceUnknown ? (
               <div className="price-stat">
                 Prezzo normale
                 <strong>{formatPrice(deal.normalPrice, deal.currency)}</strong>
               </div>
             ) : null}
-            <div className="price-stat">
-              Fascia osservata
-              <strong>{formatPrice(deal.avgPrice, deal.currency)}</strong>
-            </div>
-            <div className="price-stat">
-              Minimo nello snapshot
-              <strong>{formatPrice(deal.minPrice6m, deal.currency)}</strong>
-            </div>
+            {!deal.priceUnknown && deal.avgPrice > 0 ? (
+              <div className="price-stat">
+                Fascia osservata
+                <strong>{formatPrice(deal.avgPrice, deal.currency)}</strong>
+              </div>
+            ) : null}
+            {!deal.priceUnknown && deal.minPrice6m > 0 ? (
+              <div className="price-stat">
+                Minimo nello snapshot
+                <strong>{formatPrice(deal.minPrice6m, deal.currency)}</strong>
+              </div>
+            ) : null}
+            {deal.priceUnknown ? (
+              <div className="price-stat">
+                Cosa fare
+                <strong>Apri il negozio e attiva l’alert</strong>
+              </div>
+            ) : null}
           </div>
 
           <PriceChart history={deal.history} avgPrice={deal.avgPrice} currency={deal.currency} />
@@ -130,9 +150,7 @@ export function ProductPage() {
                   <strong>{m.name}</strong>
                   {m.shipping ? <span> · {m.shipping}</span> : null}
                 </div>
-                <div className="merchant-row__price">
-                  {formatPrice(m.price, deal.currency)}
-                </div>
+                <div className="merchant-row__price">{formatMerchantPrice(deal, m)}</div>
                 <a
                   className="btn btn-ghost"
                   href={merchantOfferUrl(m, deal)}
@@ -150,7 +168,11 @@ export function ProductPage() {
           <form className="alert-card" onSubmit={onSubmit}>
             <h2>Alert al prezzo giusto</h2>
             <p>
-              Limite di prezzo + opzione Telegram. Ti avvisiamo solo quando scende lì.
+              {deal.category === 'android' || deal.category === 'ios'
+                ? 'Limite 0 € = avviso quando da a pagamento diventa gratis o in promo.'
+                : deal.category === 'steam'
+                  ? 'Imposta il prezzo sotto cui vuoi il gioco (sale Steam/Epic/GOG).'
+                  : 'Limite di prezzo + Telegram. Ti avvisiamo solo quando scende lì.'}
             </p>
             <label htmlFor="target">Limite prezzo (€)</label>
             <input

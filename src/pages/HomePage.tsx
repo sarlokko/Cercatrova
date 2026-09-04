@@ -6,10 +6,12 @@ import { type Category } from '../data/deals'
 import { searchDeals } from '../lib/search'
 
 const filters: Array<{ id: 'all' | Category; label: string }> = [
-  { id: 'all', label: 'Tutto il radar' },
-  { id: 'software', label: 'Software free' },
+  { id: 'all', label: 'Tutto' },
   { id: 'nas', label: 'NAS / Storage' },
-  { id: 'gaming', label: 'Gaming free' },
+  { id: 'software', label: 'Software' },
+  { id: 'steam', label: 'Steam / PC' },
+  { id: 'android', label: 'Android' },
+  { id: 'ios', label: 'iOS' },
 ]
 
 export function HomePage() {
@@ -41,8 +43,8 @@ export function HomePage() {
           </div>
           <h1 className="hero__headline">Ti avviso solo quando il prezzo è quello giusto.</h1>
           <p className="hero__lead">
-            Cerca in modo generico o specifico, metti un limite di prezzo e ricevi l’alert su
-            Telegram.
+            Cerca anche prodotti non in offerta: NAS a listino, giochi Steam, app Android e iOS.
+            Poi metti un limite e ricevi l’alert su Telegram.
           </p>
           <div className="hero__actions">
             <a className="btn btn-primary" href="#radar">
@@ -68,14 +70,14 @@ export function HomePage() {
         <div className="section__head">
           <h2>Deal Radar</h2>
           <p>
-            Filtra per testo e prezzo. I prezzi hardware sono uno snapshot dei listini (sett. 2026),
-            non un magazzino in tempo reale: apri il negozio per il totale di oggi.
+            Non solo i deal già trovati: se cerchi un NAS come l’UGREEN 2800 lo trovi anche a
+            listino. Stesso per Steam e per le app a pagamento su Android e iOS (store separati).
           </p>
         </div>
 
         <p className="price-honesty">
-          Un HDD NAS 12TB non costa 180 €: il WD Red Plus è intorno ai 399 € su Amazon.it. Niente
-          “errori di prezzo” inventati.
+          Niente prezzi inventati. Hardware = snapshot listini (sett. 2026). Giochi e app = listino
+          store + alert quando vanno in sconto o da a pagamento diventano gratis.
         </p>
 
         <div className="radar-search">
@@ -85,7 +87,7 @@ export function HomePage() {
           <input
             id="radar-q"
             className="radar-search__input"
-            placeholder="Scrivi cosa cerchi: hdd, nas, ssd, software gratis…"
+            placeholder="Es. ugreen 2800, stardew, forest android…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoComplete="off"
@@ -155,8 +157,8 @@ export function HomePage() {
             <div className="step__n">01</div>
             <h3>Cerchi</h3>
             <p>
-              Generico (“HDD 12TB per NAS”) o specifico (“WD Red Plus 12TB”), con categoria e
-              prezzo massimo.
+              Generico (“NAS 2 bay”) o specifico (“UGREEN DXP2800”). Se non è nel catalogo apriamo
+              comunque i negozi.
             </p>
           </article>
           <article className="step">
@@ -189,11 +191,11 @@ export function HomePage() {
           <div className="split__visual" aria-hidden>
             <div className="bubble bubble--1">
               <strong>Generico</strong>
-              <span>HDD NAS sotto 180 €</span>
+              <span>NAS 2 bay sotto 400 €</span>
             </div>
             <div className="bubble bubble--2">
               <strong>Specifico</strong>
-              <span>WD Red Plus 12TB</span>
+              <span>UGREEN DXP2800</span>
             </div>
             <div className="bubble bubble--3">
               <strong>Telegram</strong>

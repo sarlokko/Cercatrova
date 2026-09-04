@@ -20,13 +20,27 @@ export function merchantOfferUrl(merchant: Merchant, deal: Deal) {
   if (name.includes('synology')) return `https://www.synology.com/it-it/search?search=${query}`
   if (name.includes('steam')) return `https://store.steampowered.com/search/?term=${query}`
   if (name.includes('epic')) return `https://store.epicgames.com/it/browse?q=${query}`
+  if (name.includes('gog')) return `https://www.gog.com/en/games?query=${query}`
+  if (name.includes('instant')) return `https://www.instant-gaming.com/it/ricerca/?q=${query}`
   if (name.includes('humble')) return `https://www.humblebundle.com/store/search?search=${query}`
   if (name.includes('appsumo')) return `https://appsumo.com/search/?query=${query}`
   if (name.includes('macpaw')) return 'https://macpaw.com/cleanmymac'
   if (name.includes('notion')) return 'https://www.notion.com/product'
   if (name.includes('midjourney')) return 'https://www.midjourney.com/'
   if (name.includes('figma')) return 'https://www.figma.com/pricing'
+  if (name.includes('google play') || name.includes('play store')) {
+    return `https://play.google.com/store/search?q=${query}&c=apps`
+  }
   if (name.includes('app store')) return `https://apps.apple.com/it/search?term=${query}`
+  if (name.includes('ugreen')) return `https://nas-eu.ugreen.com/en-it/search?q=${query}`
+  if (name.includes('pccomponentes')) return `https://www.pccomponentes.it/buscar/?query=${query}`
+  if (name.includes('videolan') || name.includes('vlc')) return 'https://www.videolan.org/vlc/'
+  if (name.includes('libreoffice')) {
+    return 'https://www.libreoffice.org/download/download-libreoffice/'
+  }
+  if (name.includes('microsoft')) {
+    return `https://www.microsoft.com/it-it/search/explore?q=${query}`
+  }
 
   return `https://www.google.com/search?q=${query}+${encodeURIComponent(merchant.name)}`
 }

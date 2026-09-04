@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { DealRow } from '../components/DealRow'
-import { type Category, categoryLabel, deals, formatPrice } from '../data/deals'
+import { type Category, categoryLabel, formatPrice, getDeal } from '../data/deals'
 import {
   genericSuggestions,
   searchDeals,
@@ -114,8 +114,8 @@ export function MonitorPage() {
       <div className="section__head">
         <h2>Cerca e filtra</h2>
         <p>
-          Ricerca intelligente: scrivi “hdd” e trovi i dischi, senza scegliere da un elenco. Poi
-          imposta il limite di prezzo e, se vuoi, le notifiche su Telegram.
+          Non solo i prodotti già nel radar. Scrivi “ugreen 2800” o un gioco Steam: se non è in
+          offerta lo apriamo comunque nei negozi e puoi metterlo in alert.
         </p>
       </div>
 
@@ -148,8 +148,8 @@ export function MonitorPage() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder={
             mode === 'generico'
-              ? 'Scrivi liberamente: hdd, disco per nas, software gratis…'
-              : 'Modello esatto: WD Red Plus 12TB…'
+              ? 'Es. nas 2 bay, giochi steam, app android…'
+              : 'Es. UGREEN DXP2800, Stardew Valley, Forest…'
           }
           autoComplete="off"
           autoCorrect="off"
@@ -183,9 +183,11 @@ export function MonitorPage() {
               onChange={(e) => setCategory(e.target.value as 'all' | Category)}
             >
               <option value="all">Tutte</option>
-              <option value="software">Software / SaaS / AI</option>
-              <option value="nas">NAS + HDD + SSD + RAM</option>
-              <option value="gaming">Gaming free</option>
+              <option value="nas">NAS / Storage</option>
+              <option value="software">Software</option>
+              <option value="steam">Steam / Epic / GOG</option>
+              <option value="android">Android (Play Store)</option>
+              <option value="ios">iOS (App Store)</option>
             </select>
           </div>
           <div>
@@ -257,7 +259,8 @@ export function MonitorPage() {
         <h3>Risultati filtrati</h3>
         {results.length === 0 ? (
           <p className="watch-empty">
-            Nessun match. Allarga la ricerca generica, alza il limite prezzo o togli “solo gratis”.
+            Nessun match. Togli “solo gratis” o alza il limite: anche senza offerta apriamo i
+            negozi per la tua query.
           </p>
         ) : (
           <div className="deal-list">
@@ -280,7 +283,7 @@ export function MonitorPage() {
             <div key={`${w.id}-${w.createdAt}`} className="watch-item">
               <div>
                 <strong>
-                  {deals.some((d) => d.id === w.id) ? (
+                  {getDeal(w.id) ? (
                     <Link to={`/prodotto/${w.id}`}>{w.title}</Link>
                   ) : (
                     w.title
