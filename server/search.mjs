@@ -135,7 +135,8 @@ function makeLookup(query, category) {
 }
 
 export async function searchProducts(filters) {
-  const local = listCatalog(filters.category === 'all' ? 'all' : filters.category)
+  const seededOnly = !filters.query.trim()
+  const local = listCatalog(filters.category === 'all' ? 'all' : filters.category, { seededOnly })
     .map((row) => assembleProduct(row.id))
     .filter(Boolean)
     .map((d) => ({ d, s: score(d, filters) }))

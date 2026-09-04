@@ -212,11 +212,12 @@ export function productIdByExternal(storeLike, externalId) {
   return row?.product_id ?? null
 }
 
-export function listCatalog(category = 'all') {
+export function listCatalog(category = 'all', { seededOnly = false } = {}) {
+  const extra = seededOnly ? ` AND source = 'catalog'` : ''
   if (category && category !== 'all') {
-    return db.prepare(`SELECT * FROM products WHERE category = ? ORDER BY title`).all(category)
+    return db.prepare(`SELECT * FROM products WHERE category = ?${extra} ORDER BY title`).all(category)
   }
-  return db.prepare(`SELECT * FROM products ORDER BY title`).all()
+  return db.prepare(`SELECT * FROM products WHERE 1=1${extra} ORDER BY title`).all()
 }
 
 export function listingsFor(productId) {

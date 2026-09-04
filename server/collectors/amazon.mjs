@@ -87,14 +87,15 @@ export async function amazonSearch(term) {
   const out = []
   const tokens = q.toLowerCase().split(/\s+/).filter((t) => t.length > 1)
   for (const card of cards.slice(1, 16)) {
-    const asin = (card.match(/data-asin="(B0[A-Z0-9]{8})"/) ||
-      card.match(/\/dp\/(B0[A-Z0-9]{8})/))?.[1]
+    const head = card.slice(0, 1800)
+    const asin = (head.match(/data-asin="(B0[A-Z0-9]{8})"/) ||
+      head.match(/\/dp\/(B0[A-Z0-9]{8})/))?.[1]
     const name = decode(
-      (card.match(/<h2[^>]*>[\s\S]*?<span[^>]*>([^<]+)/) || [])[1] || '',
+      (head.match(/<h2[^>]*>[\s\S]*?<span[^>]*>([^<]+)/) || [])[1] || '',
     )
       .replace(/\s+/g, ' ')
       .trim()
-    const priceRaw = (card.match(/class="a-offscreen">([^<]+)/) || [])[1]
+    const priceRaw = (head.match(/class="a-offscreen">([^<]+)/) || [])[1]
     const price = parseEuro(priceRaw)
     if (!asin || !name || price == null) continue
     const hay = name.toLowerCase()

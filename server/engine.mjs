@@ -137,8 +137,11 @@ export async function liveSearchExtras(query, category) {
   if (steamish || category === 'all') {
     try {
       const hits = await steamSearch(q)
+      const qTokens = q.toLowerCase().split(/\s+/).filter((t) => t.length > 2)
       for (const hit of hits) {
         if (hit.price == null && hit.price !== 0) continue
+        const title = String(hit.title || '').toLowerCase()
+        if (qTokens.length && !qTokens.every((t) => title.includes(t))) continue
         const id = productIdByExternal('Steam', hit.appId) || `steam-${hit.appId}`
         upsertProduct({
           id,
