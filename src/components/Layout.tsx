@@ -60,9 +60,9 @@ export function Footer() {
       <div className="site-footer__inner">
         <div>
           <strong>{BRAND_NAME}</strong>
-          <p>Cerca anche fuori offerta: NAS, Steam, Android e iOS. Poi l’alert.</p>
+          <p>È questo il momento giusto per comprarlo?</p>
         </div>
-        <p>Demo · prezzi hardware allineati ai listini pubblici (sett. 2026), non in tempo reale.</p>
+        <p>V2 · prezzi dai negozi quando rispondono, altrimenti “non disponibile”.</p>
       </div>
     </footer>
   )

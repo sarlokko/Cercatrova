@@ -247,7 +247,7 @@
   font-style: italic;
   font-size: clamp(1.35rem, 3vw, 1.85rem);
   line-height: 1.25;
-  max-width: 18ch;
+  max-width: 28ch;
   margin-bottom: 0.85rem;
 }
 
@@ -1201,6 +1201,95 @@
   font-size: 0.92rem;
   font-weight: 700;
   margin: 0;
+}
+
+.verdict {
+  margin: 0 0 1.15rem;
+  padding: 1rem 1.1rem 1.05rem;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  background: var(--cream);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+.verdict__q {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.verdict__label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 0.35rem;
+}
+
+.verdict__detail {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.verdict--eccezionale {
+  background: #fde8e4;
+}
+
+.verdict--ottimo,
+.verdict--gratis {
+  background: #e7f5ec;
+}
+
+.verdict--abbastanza {
+  background: var(--signal);
+}
+
+.verdict--normale,
+.verdict--sconosciuto,
+.verdict--pochi-dati {
+  background: var(--cream);
+}
+
+.merchant-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1.1rem 0 0.75rem;
+}
+
+.plus-box {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.25rem 0;
+  padding: 1rem 1.1rem;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--cream);
+}
+
+.plus-box p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  max-width: 52ch;
+}
+
+.plus-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.plus-form input {
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  background: #fff;
 }
 
 .price-honesty {

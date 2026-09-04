@@ -32,7 +32,7 @@ export function PriceChart({ history, avgPrice, currency = '€' }: Props) {
 
   return (
     <div className="chart-wrap">
-      <h2>Andamento indicativo</h2>
+      <h2>Storico prezzi</h2>
       <svg className="chart-svg" viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Grafico storico prezzi">
         <defs>
           <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">

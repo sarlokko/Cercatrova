@@ -1,38 +1,54 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { PriceChart } from '../components/PriceChart'
+import { VerdictCard } from '../components/VerdictCard'
 import {
   categoryLabel,
+  type Deal,
   formatCheckedAt,
   formatDealPrice,
   formatMerchantPrice,
   formatPrice,
-  getDeal,
   kindLabel,
 } from '../data/deals'
+import { apiAddWatch, apiMe, apiProduct, apiRefresh, apiTelegramLink } from '../lib/api'
 import { merchantOfferUrl } from '../lib/offers'
-import {
-  addWatch,
-  getTelegramPrefs,
-  normalizeTelegramUser,
-  saveTelegramPrefs,
-  telegramBotStartUrl,
-  type WatchItem,
-} from '../lib/watchlist'
+import { getTelegramPrefs, normalizeTelegramUser, saveTelegramPrefs } from '../lib/watchlist'
 
 export function ProductPage() {
   const { id = '' } = useParams()
-  const deal = getDeal(id)
   const prefs = getTelegramPrefs()
+  const [deal, setDeal] = useState<Deal | undefined>()
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [target, setTarget] = useState('')
   const [wantTelegram, setWantTelegram] = useState(Boolean(prefs?.username))
   const [telegram, setTelegram] = useState(prefs?.username ?? '')
   const [toast, setToast] = useState<string | null>(null)
+  const [planNote, setPlanNote] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    apiProduct(id).then((p) => {
+      if (!cancelled) {
+        setDeal(p)
+        setLoading(false)
+      }
+    })
+    apiMe().then((me) => {
+      if (me && !cancelled) {
+        setPlanNote(`${me.used}/${me.limit} monitoraggi (${me.plan === 'plus' ? 'Plus' : 'gratis'})`)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   const suggested = useMemo(() => {
     if (!deal) return ''
-    if (deal.isFree) return '0'
-    if (deal.category === 'android' || deal.category === 'ios') return '0'
+    if (deal.isFree || deal.category === 'android' || deal.category === 'ios') return '0'
     if (deal.priceUnknown) return ''
     if (deal.minPrice6m > 0) {
       return Math.max(0, Math.round(deal.minPrice6m * 0.98 * 100) / 100).toString()
@@ -40,60 +56,96 @@ export function ProductPage() {
     return deal.currentPrice > 0 ? String(deal.currentPrice) : ''
   }, [deal])
 
-  if (!deal) {
+  if (loading) {
     return (
       <div className="detail-page">
         <Link to="/" className="back-link">
-          ← Torna al radar
+          ← Torna alla cerca
         </Link>
-        <h1>Prodotto non trovato</h1>
-        <p>Questo prodotto non è in catalogo. Torna alla ricerca e scrivi il modello.</p>
+        <p>Leggo i negozi…</p>
       </div>
     )
   }
 
-  const onSubmit = (e: FormEvent) => {
+  if (!deal) {
+    return (
+      <div className="detail-page">
+        <Link to="/" className="back-link">
+          ← Torna alla cerca
+        </Link>
+        <h1>Prodotto non trovato</h1>
+        <p>Torna alla ricerca e scrivi il modello.</p>
+      </div>
+    )
+  }
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    const next = await apiRefresh(deal.id)
+    if (next) setDeal(next)
+    setRefreshing(false)
+  }
+
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    const price = Number(target || suggested)
+    const price = Number(target || suggested || 0)
     if (wantTelegram && !telegram.trim()) {
-      setToast('Inserisci il tuo @username Telegram.')
+      setToast('Inserisci il tuo @username Telegram oppure collega il bot.')
       return
     }
     const tg = wantTelegram ? normalizeTelegramUser(telegram) : ''
     if (tg) saveTelegramPrefs({ username: tg, linkedAt: new Date().toISOString() })
-
-    const item: WatchItem = {
-      id: deal.id,
-      title: deal.title,
-      targetPrice: price,
-      telegram: tg || undefined,
-      notify: wantTelegram ? 'telegram' : 'none',
-      mode: 'specifico',
-      category: deal.category,
-      query: deal.title,
-      createdAt: new Date().toISOString(),
-      note: 'Prodotto specifico',
+    try {
+      await apiAddWatch({
+        productId: deal.id,
+        title: deal.title,
+        query: deal.title,
+        category: deal.category,
+        targetPrice: price,
+        telegram: tg || undefined,
+        notify: wantTelegram ? 'telegram' : 'none',
+      })
+      setToast(
+        wantTelegram
+          ? `Monitoraggio sul server sotto ${formatPrice(price, deal.currency)}. Collega il bot se non l’hai già fatto.`
+          : `Monitoraggio sul server sotto ${formatPrice(price, deal.currency)}.`,
+      )
+      const me = await apiMe()
+      if (me) setPlanNote(`${me.used}/${me.limit} monitoraggi`)
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Limite raggiunto.')
     }
-    addWatch(item)
-    setToast(
-      wantTelegram
-        ? `Alert Telegram attivo sotto ${formatPrice(price, deal.currency)} → ${tg}`
-        : `Alert attivo sotto ${formatPrice(price, deal.currency)}.`,
-    )
+  }
+
+  const connectBot = async () => {
+    const tg = normalizeTelegramUser(telegram)
+    if (tg) saveTelegramPrefs({ username: tg, linkedAt: new Date().toISOString() })
+    try {
+      const link = await apiTelegramLink()
+      window.open(link.url, '_blank', 'noopener,noreferrer')
+      setToast(
+        link.configured
+          ? 'Apri Telegram e premi Avvia: la chat si collega al server.'
+          : 'Bot non configurato sul server (manca TELEGRAM_BOT_TOKEN). Il monitoraggio è comunque salvato.',
+      )
+    } catch {
+      setToast('Impossibile creare il link Telegram.')
+    }
   }
 
   return (
     <div className="detail-page">
       <Link to="/" className="back-link">
-        ← Torna al radar
+        ← Torna alla cerca
       </Link>
 
       <div className="detail-grid">
         <div className="detail-main">
           <div className="deal-tags">
-            <span className="tag tag--signal">{kindLabel[deal.kind]}</span>
+            <span className="tag tag--signal">{deal.verdict?.label ?? kindLabel[deal.kind]}</span>
             <span className="tag">{categoryLabel[deal.category]}</span>
-            {deal.tags.map((t) => (
+            {deal.live ? <span className="tag">live</span> : null}
+            {deal.tags.slice(0, 4).map((t) => (
               <span key={t} className="tag">
                 {t}
               </span>
@@ -103,10 +155,12 @@ export function ProductPage() {
           <h1>{deal.title}</h1>
           <p>{deal.subtitle}</p>
           <p className="field-hint" style={{ marginBottom: '1rem' }}>
-            {deal.lookup
-              ? 'Non era nel radar: ti mostriamo i negozi giusti. Nessun prezzo inventato.'
-              : `Snapshot del ${formatCheckedAt(deal.checkedAt)}. Il totale in cassa è quello del negozio, oggi.`}
+            {deal.priceUnknown
+              ? 'Prezzo non disponibile: meglio nessuna cifra che un numero fermo nel repo.'
+              : `Ultimo rilievo ${formatCheckedAt(deal.checkedAt.slice(0, 10))}. Il totale in cassa è del negozio.`}
           </p>
+
+          {deal.verdict ? <VerdictCard verdict={deal.verdict} /> : null}
 
           <div className="price-board">
             <div
@@ -114,35 +168,41 @@ export function ProductPage() {
             >
               {formatDealPrice(deal)}
             </div>
-            {deal.discountPct > 0 && !deal.priceUnknown ? (
+            {deal.normalPrice > 0 && !deal.priceUnknown ? (
               <div className="price-stat">
-                Prezzo normale
+                Listino / normale
                 <strong>{formatPrice(deal.normalPrice, deal.currency)}</strong>
               </div>
             ) : null}
             {!deal.priceUnknown && deal.avgPrice > 0 ? (
               <div className="price-stat">
-                Fascia osservata
+                Media osservata
                 <strong>{formatPrice(deal.avgPrice, deal.currency)}</strong>
               </div>
             ) : null}
             {!deal.priceUnknown && deal.minPrice6m > 0 ? (
               <div className="price-stat">
-                Minimo nello snapshot
+                Minimo osservato
                 <strong>{formatPrice(deal.minPrice6m, deal.currency)}</strong>
-              </div>
-            ) : null}
-            {deal.priceUnknown ? (
-              <div className="price-stat">
-                Cosa fare
-                <strong>Apri il negozio e attiva l’alert</strong>
               </div>
             ) : null}
           </div>
 
-          <PriceChart history={deal.history} avgPrice={deal.avgPrice} currency={deal.currency} />
+          <div className="chart-head-row">
+            <PriceChart history={deal.history} avgPrice={deal.avgPrice} currency={deal.currency} />
+            {deal.history.length < 2 ? (
+              <p className="field-hint">
+                Il grafico si riempie con i rilevamenti veri. Un punto solo = storico in costruzione.
+              </p>
+            ) : null}
+          </div>
 
-          <h2 style={{ fontSize: '1.05rem', marginBottom: '0.75rem' }}>Confronta i negozi</h2>
+          <div className="merchant-head">
+            <h2 style={{ fontSize: '1.05rem', margin: 0 }}>Negozi</h2>
+            <button type="button" className="btn btn-ghost" onClick={onRefresh} disabled={refreshing}>
+              {refreshing ? 'Aggiorno…' : 'Aggiorna prezzi'}
+            </button>
+          </div>
           <div className="merchants">
             {deal.merchants.map((m) => (
               <div key={m.name} className="merchant-row">
@@ -157,7 +217,7 @@ export function ProductPage() {
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  Vai all’offerta
+                  Compra
                 </a>
               </div>
             ))}
@@ -166,13 +226,9 @@ export function ProductPage() {
 
         <aside className="detail-side">
           <form className="alert-card" onSubmit={onSubmit}>
-            <h2>Alert al prezzo giusto</h2>
+            <h2>Monitora</h2>
             <p>
-              {deal.category === 'android' || deal.category === 'ios'
-                ? 'Limite 0 € = avviso quando da a pagamento diventa gratis o in promo.'
-                : deal.category === 'steam'
-                  ? 'Imposta il prezzo sotto cui vuoi il gioco (sale Steam/Epic/GOG).'
-                  : 'Limite di prezzo + Telegram. Ti avvisiamo solo quando scende lì.'}
+              Salvato sul server, non solo nel browser. {planNote || '3 monitoraggi nel piano gratis.'}
             </p>
             <label htmlFor="target">Limite prezzo (€)</label>
             <input
@@ -191,11 +247,11 @@ export function ProductPage() {
                 checked={wantTelegram}
                 onChange={(e) => setWantTelegram(e.target.checked)}
               />
-              Notifica Telegram
+              Notifica Telegram (target + prezzo eccezionale)
             </label>
             {wantTelegram ? (
               <>
-                <label htmlFor="tg-user">Username Telegram</label>
+                <label htmlFor="tg-user">Username Telegram (facoltativo)</label>
                 <input
                   id="tg-user"
                   type="text"
@@ -206,12 +262,14 @@ export function ProductPage() {
                 <button
                   type="button"
                   className="btn btn-ghost"
-                  style={{ width: '100%', marginBottom: '0.85rem', color: '#eefae6', borderColor: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)' }}
-                  onClick={() => {
-                    const tg = normalizeTelegramUser(telegram)
-                    if (tg) saveTelegramPrefs({ username: tg, linkedAt: new Date().toISOString() })
-                    window.open(telegramBotStartUrl(`p_${deal.id}`), '_blank', 'noopener,noreferrer')
+                  style={{
+                    width: '100%',
+                    marginBottom: '0.85rem',
+                    color: '#eefae6',
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    background: 'rgba(255,255,255,0.06)',
                   }}
+                  onClick={connectBot}
                 >
                   Collega bot Telegram
                 </button>

@@ -46,6 +46,26 @@ export type Deal = {
   expiresAt?: string
   tags: string[]
   checkedAt: string
+  verdict?: Verdict
+  live?: boolean
+  sampleCount?: number
+}
+
+export type VerdictKind =
+  | 'eccezionale'
+  | 'ottimo'
+  | 'abbastanza'
+  | 'normale'
+  | 'sconosciuto'
+  | 'gratis'
+  | 'pochi-dati'
+
+export type Verdict = {
+  kind: VerdictKind
+  label: string
+  question: string
+  detail: string
+  pctBelowAvg: number | null
 }
 
 /** Snapshot listini pubblici, non un feed in tempo reale. */
@@ -919,6 +939,7 @@ export function formatCheckedAt(iso = PRICES_CHECKED_AT) {
 }
 
 export function priceDeltaLabel(deal: Deal) {
+  if (deal.verdict) return deal.verdict.label
   if (deal.lookup || deal.priceUnknown) return 'apri i negozi'
   if (deal.kind === 'monitora' && (deal.category === 'android' || deal.category === 'ios')) {
     return 'da a pagamento → gratis'

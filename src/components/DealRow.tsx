@@ -34,16 +34,21 @@ export function DealRow({ deal }: Props) {
         <div className="deal-tags">
           <span
             className={`tag${
-              deal.kind === 'gratis' || deal.kind === 'listino' || deal.kind === 'monitora'
-                ? ' tag--signal'
-                : deal.kind === 'errore' || deal.kind === 'scade'
-                  ? ' tag--alert'
-                  : deal.kind === 'lookup'
-                    ? ' tag--lookup'
-                    : ''
+              deal.verdict?.kind === 'eccezionale' || deal.verdict?.kind === 'ottimo'
+                ? ' tag--alert'
+                : deal.verdict ||
+                    deal.kind === 'gratis' ||
+                    deal.kind === 'listino' ||
+                    deal.kind === 'monitora'
+                  ? ' tag--signal'
+                  : deal.kind === 'errore' || deal.kind === 'scade'
+                    ? ' tag--alert'
+                    : deal.kind === 'lookup'
+                      ? ' tag--lookup'
+                      : ''
             }`}
           >
-            {kindLabel[deal.kind]}
+            {deal.verdict?.label ?? kindLabel[deal.kind]}
           </span>
           <span className="tag">{categoryLabel[deal.category]}</span>
           {deal.expiresAt ? <span className="tag">Scade {deal.expiresAt}</span> : null}

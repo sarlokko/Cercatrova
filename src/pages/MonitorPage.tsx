@@ -1,26 +1,25 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { DealRow } from '../components/DealRow'
-import { type Category, categoryLabel, formatPrice, getDeal } from '../data/deals'
+import { type Category, type Deal, categoryLabel, formatPrice } from '../data/deals'
 import {
-  genericSuggestions,
-  searchDeals,
-  type SearchMode,
-} from '../lib/search'
-import {
-  addWatch,
-  getTelegramPrefs,
-  listWatches,
-  normalizeTelegramUser,
-  removeWatch,
-  saveTelegramPrefs,
-  telegramBotStartUrl,
-  type WatchItem,
-} from '../lib/watchlist'
+  apiAddWatch,
+  apiMe,
+  apiRemoveWatch,
+  apiSearch,
+  apiTelegramLink,
+  apiUnlockPlus,
+  apiWatches,
+  type Me,
+  type WatchDto,
+} from '../lib/api'
+import { genericSuggestions, type SearchMode } from '../lib/search'
+import { getTelegramPrefs, normalizeTelegramUser, saveTelegramPrefs } from '../lib/watchlist'
 
 export function MonitorPage() {
   const prefs = getTelegramPrefs()
-  const [watches, setWatches] = useState<WatchItem[]>(() => listWatches())
+  const [watches, setWatches] = useState<WatchDto[]>([])
+  const [me, setMe] = useState<Me | null>(null)
   const [mode, setMode] = useState<SearchMode>('generico')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<'all' | Category>('all')
@@ -29,24 +28,43 @@ export function MonitorPage() {
   const [wantTelegram, setWantTelegram] = useState(Boolean(prefs?.username))
   const [telegram, setTelegram] = useState(prefs?.username ?? '')
   const [toast, setToast] = useState<string | null>(null)
+  const [results, setResults] = useState<Deal[]>([])
+  const [searching, setSearching] = useState(false)
+  const [plusKey, setPlusKey] = useState('')
 
   const maxPriceNum = maxPrice.trim() === '' ? null : Number(maxPrice)
 
-  const results = useMemo(
-    () =>
-      searchDeals({
-        query,
-        mode,
-        category,
-        maxPrice: Number.isFinite(maxPriceNum as number) ? maxPriceNum : null,
-        onlyFree,
-      }),
-    [query, mode, category, maxPriceNum, onlyFree],
-  )
+  const refreshMe = async () => {
+    const [nextMe, nextWatches] = await Promise.all([apiMe(), apiWatches()])
+    setMe(nextMe)
+    setWatches(nextWatches)
+  }
 
-  const refresh = () => setWatches(listWatches())
+  useEffect(() => {
+    refreshMe()
+  }, [])
 
-  const onSaveAlert = (e: FormEvent) => {
+  useEffect(() => {
+    let cancelled = false
+    setSearching(true)
+    apiSearch({
+      query,
+      mode,
+      category,
+      maxPrice: Number.isFinite(maxPriceNum as number) ? maxPriceNum : null,
+      onlyFree,
+    }).then((rows) => {
+      if (!cancelled) {
+        setResults(rows)
+        setSearching(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [query, mode, category, maxPriceNum, onlyFree])
+
+  const onSaveAlert = async (e: FormEvent) => {
     e.preventDefault()
     const q = query.trim()
     if (!q && category === 'all' && !onlyFree) {
@@ -59,63 +77,65 @@ export function MonitorPage() {
     }
     const target = maxPriceNum == null || Number.isNaN(maxPriceNum) ? 0 : maxPriceNum
     if (wantTelegram && !telegram.trim()) {
-      setToast('Inserisci il tuo @username Telegram.')
+      setToast('Inserisci @username oppure collega il bot.')
       return
     }
-
     const tg = wantTelegram ? normalizeTelegramUser(telegram) : ''
-    if (tg) {
-      saveTelegramPrefs({ username: tg, linkedAt: new Date().toISOString() })
+    if (tg) saveTelegramPrefs({ username: tg, linkedAt: new Date().toISOString() })
+    const label = q || (category !== 'all' ? categoryLabel[category] : onlyFree ? 'Solo gratis' : 'Ricerca')
+    try {
+      await apiAddWatch({
+        productId: results[0]?.id,
+        title: label,
+        query: q || undefined,
+        category,
+        targetPrice: target,
+        telegram: tg || undefined,
+        notify: wantTelegram ? 'telegram' : 'none',
+      })
+      setToast('Monitoraggio salvato sul server.')
+      await refreshMe()
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Limite raggiunto.')
     }
-
-    const label =
-      q ||
-      (category !== 'all' ? categoryLabel[category] : onlyFree ? 'Solo gratis' : 'Ricerca')
-
-    addWatch({
-      id: `search-${Date.now()}`,
-      title: label,
-      targetPrice: target,
-      query: q || undefined,
-      mode,
-      category,
-      telegram: tg || undefined,
-      notify: wantTelegram ? 'telegram' : 'none',
-      createdAt: new Date().toISOString(),
-      note: [
-        mode === 'generico' ? 'Ricerca generica' : 'Ricerca specifica',
-        category !== 'all' ? categoryLabel[category] : null,
-        onlyFree ? 'solo gratis' : null,
-        target > 0 ? `max ${formatPrice(target)}` : 'senza tetto',
-      ]
-        .filter(Boolean)
-        .join(' · '),
-    })
-
-    setToast(
-      wantTelegram
-        ? `Alert salvato. Notifiche Telegram su ${tg}${target > 0 ? ` sotto ${formatPrice(target)}` : ''}.`
-        : `Alert salvato${target > 0 ? ` sotto ${formatPrice(target)}` : ''}.`,
-    )
-    refresh()
   }
 
-  const openTelegramBot = () => {
+  const openTelegramBot = async () => {
     const tg = normalizeTelegramUser(telegram)
     if (tg) saveTelegramPrefs({ username: tg, linkedAt: new Date().toISOString() })
-    const payload = `alert_${Date.now().toString(36)}`
-    window.open(telegramBotStartUrl(payload), '_blank', 'noopener,noreferrer')
-    setWantTelegram(true)
-    setToast('Apri il bot su Telegram e premi Avvia per collegare le notifiche (demo).')
+    try {
+      const link = await apiTelegramLink()
+      window.open(link.url, '_blank', 'noopener,noreferrer')
+      setWantTelegram(true)
+      setToast(
+        link.configured
+          ? 'Apri il bot e premi Avvia: da quel momento gli alert partono dal server.'
+          : 'Manca TELEGRAM_BOT_TOKEN sul NAS. Il watch è comunque nel database.',
+      )
+    } catch {
+      setToast('Link Telegram non disponibile.')
+    }
+  }
+
+  const unlock = async (e: FormEvent) => {
+    e.preventDefault()
+    try {
+      await apiUnlockPlus(plusKey.trim())
+      setToast('Cercatrova Plus attivo su questo dispositivo.')
+      await refreshMe()
+    } catch {
+      setToast('Codice Plus non valido.')
+    }
   }
 
   return (
     <div className="section" style={{ paddingTop: '2rem' }}>
       <div className="section__head">
-        <h2>Cerca e filtra</h2>
+        <h2>Cerca e monitora</h2>
         <p>
-          Non solo i prodotti già nel radar. Scrivi “ugreen 2800” o un gioco Steam: se non è in
-          offerta lo apriamo comunque nei negozi e puoi metterlo in alert.
+          È questo il momento giusto per comprarlo? La cerca è gratis. Il monitoraggio vive sul
+          server: {me ? `${me.used}/${me.limit}` : '…'} slot
+          {me?.telegram.linked ? ' · Telegram collegato' : ''}.
         </p>
       </div>
 
@@ -149,7 +169,7 @@ export function MonitorPage() {
           placeholder={
             mode === 'generico'
               ? 'Es. nas 2 bay, giochi steam, app android…'
-              : 'Es. UGREEN DXP2800, Stardew Valley, Forest…'
+              : 'Es. UGREEN DXP2800, Stardew Valley…'
           }
           autoComplete="off"
           autoCorrect="off"
@@ -197,7 +217,7 @@ export function MonitorPage() {
               type="number"
               min={0}
               step="0.01"
-              placeholder="es. 400"
+              placeholder="es. 299"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
             />
@@ -223,7 +243,7 @@ export function MonitorPage() {
               checked={wantTelegram}
               onChange={(e) => setWantTelegram(e.target.checked)}
             />
-            Notifica su Telegram quando scende sotto il limite
+            Telegram: target e prezzo eccezionale (media −15%)
           </label>
           {wantTelegram ? (
             <div className="telegram-row">
@@ -239,29 +259,50 @@ export function MonitorPage() {
             </div>
           ) : null}
           <p className="field-hint">
-            Demo: salva l’alert in locale e apre il bot Telegram. In produzione il backend invia il
-            messaggio via Bot API.
+            {me?.telegram.configured
+              ? 'Il bot è configurato sul server. Premi Avvia in Telegram per associare la chat.'
+              : 'Imposta TELEGRAM_BOT_TOKEN nel compose del NAS per le notifiche vere.'}
           </p>
         </div>
 
         <div className="search-actions">
           <button className="btn btn-primary" type="submit">
-            Salva ricerca + alert
+            Salva monitoraggio
           </button>
           <p className="results-count">
-            {results.length} risultat{results.length === 1 ? 'o' : 'i'} sotto il filtro
+            {searching
+              ? 'Cerco…'
+              : `${results.length} risultat${results.length === 1 ? 'o' : 'i'} · ${me ? `${me.used}/${me.limit} slot` : ''}`}
           </p>
         </div>
         {toast ? <div className="toast">{toast}</div> : null}
       </form>
 
-      <div className="search-results">
-        <h3>Risultati filtrati</h3>
-        {results.length === 0 ? (
-          <p className="watch-empty">
-            Nessun match. Togli “solo gratis” o alza il limite: anche senza offerta apriamo i
-            negozi per la tua query.
+      <div className="plus-box">
+        <div>
+          <strong>Cercatrova Plus · 2,99 €/mese</strong>
+          <p>
+            20 monitoraggi, Telegram, storico e alert “prezzo eccezionale”. La cerca resta gratis.
+            Pagamento in-app arriva dopo: sul NAS sblocchi con PLUS_KEY.
           </p>
+        </div>
+        <form onSubmit={unlock} className="plus-form">
+          <input
+            placeholder="Codice Plus"
+            value={plusKey}
+            onChange={(e) => setPlusKey(e.target.value)}
+            aria-label="Codice Plus"
+          />
+          <button className="btn btn-ghost" type="submit">
+            Sblocca
+          </button>
+        </form>
+      </div>
+
+      <div className="search-results">
+        <h3>Risultati</h3>
+        {results.length === 0 && !searching ? (
+          <p className="watch-empty">Nessun match. Togli “solo gratis” o allarga la query.</p>
         ) : (
           <div className="deal-list">
             {results.map((deal) => (
@@ -272,30 +313,21 @@ export function MonitorPage() {
       </div>
 
       <div className="watch-box" style={{ marginTop: '1.5rem' }}>
-        <h3>Le tue ricerche monitorate</h3>
+        <h3>Monitoraggi sul server</h3>
         {watches.length === 0 ? (
           <p className="watch-empty">
-            Nessun alert ancora. Salva una ricerca qui sopra: riceverai il segnale solo sotto il
-            tuo limite.
+            Nessun alert ancora. Non sta più solo nel browser: chiudi la scheda e il motore continua.
           </p>
         ) : (
           watches.map((w) => (
-            <div key={`${w.id}-${w.createdAt}`} className="watch-item">
+            <div key={w.id} className="watch-item">
               <div>
                 <strong>
-                  {getDeal(w.id) ? (
-                    <Link to={`/prodotto/${w.id}`}>{w.title}</Link>
-                  ) : (
-                    w.title
-                  )}
+                  {w.productId ? <Link to={`/prodotto/${w.productId}`}>{w.title}</Link> : w.title}
                 </strong>
                 <span>
-                  {w.note ? `${w.note} · ` : ''}
-                  {w.notify === 'telegram' && w.telegram
-                    ? `Telegram ${w.telegram}`
-                    : w.email
-                      ? w.email
-                      : 'senza canale'}
+                  {w.query ? `${w.query} · ` : ''}
+                  {w.notify === 'telegram' ? `Telegram ${w.telegram || 'in collegamento'}` : 'senza canale'}
                   {' · '}
                   {new Date(w.createdAt).toLocaleDateString('it-IT')}
                 </span>
@@ -306,9 +338,9 @@ export function MonitorPage() {
                   type="button"
                   className="btn btn-ghost"
                   style={{ marginTop: '0.4rem', padding: '0.35rem 0.7rem', fontSize: '0.8rem' }}
-                  onClick={() => {
-                    removeWatch(w.id, w.createdAt)
-                    refresh()
+                  onClick={async () => {
+                    await apiRemoveWatch(w.id)
+                    await refreshMe()
                   }}
                 >
                   Rimuovi

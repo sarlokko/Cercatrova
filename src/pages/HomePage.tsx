@@ -1,9 +1,9 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
 import { DealRow } from '../components/DealRow'
-import { type Category } from '../data/deals'
-import { searchDeals } from '../lib/search'
+import { type Category, type Deal } from '../data/deals'
+import { apiSearch } from '../lib/api'
 
 const filters: Array<{ id: 'all' | Category; label: string }> = [
   { id: 'all', label: 'Tutto' },
@@ -19,16 +19,28 @@ export function HomePage() {
   const [query, setQuery] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const deferredQuery = useDeferredValue(query)
+  const [visible, setVisible] = useState<Deal[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const visible = useMemo(() => {
+  useEffect(() => {
     const max = maxPrice.trim() === '' ? null : Number(maxPrice)
-    return searchDeals({
+    let cancelled = false
+    setLoading(true)
+    apiSearch({
       query: deferredQuery,
       mode: 'generico',
       category: filter,
       maxPrice: max != null && Number.isFinite(max) ? max : null,
       onlyFree: false,
+    }).then((rows) => {
+      if (!cancelled) {
+        setVisible(rows)
+        setLoading(false)
+      }
     })
+    return () => {
+      cancelled = true
+    }
   }, [filter, deferredQuery, maxPrice])
 
   return (
@@ -41,48 +53,47 @@ export function HomePage() {
               Il <em>Cerca-Trova</em>
             </p>
           </div>
-          <h1 className="hero__headline">Ti avviso solo quando il prezzo è quello giusto.</h1>
+          <h1 className="hero__headline">È questo il momento giusto per comprarlo?</h1>
           <p className="hero__lead">
-            Cerca anche prodotti non in offerta: NAS a listino, giochi Steam, app Android e iOS.
-            Poi metti un limite e ricevi l’alert su Telegram.
+            Non un altro Trovaprezzi. Cerchi il prodotto — anche a listino — e Cercatrova ti dice
+            se conviene adesso, o se aspettare l’alert.
           </p>
           <div className="hero__actions">
             <a className="btn btn-primary" href="#radar">
-              Cerca nel radar
+              Cerca ora
             </a>
             <Link className="btn btn-ghost" to="/cerca">
-              Alert Telegram
+              Monitora + Telegram
             </Link>
           </div>
         </div>
 
         <aside className="hero__ticket" aria-hidden>
           <div className="ticket">
-            <span className="ticket__stamp">Trovato!</span>
-            <p>WD Red Plus 12TB</p>
-            <strong>€399</strong>
-            <small>Amazon.it · sett. 2026</small>
+            <span className="ticket__stamp">Conviene?</span>
+            <p>UGREEN DXP2800</p>
+            <strong>Abbastanza</strong>
+            <small>Prezzo vs storico · non “dove costa meno”</small>
           </div>
         </aside>
       </section>
 
       <section className="section" id="radar">
         <div className="section__head">
-          <h2>Deal Radar</h2>
+          <h2>Cerca ora</h2>
           <p>
-            Non solo i deal già trovati: se cerchi un NAS come l’UGREEN 2800 lo trovi anche a
-            listino. Stesso per Steam e per le app a pagamento su Android e iOS (store separati).
+            Interroga Steam e, quando risponde, Amazon. Se il prezzo non è leggibile resta
+            “non disponibile” — mai una cifra inventata.
           </p>
         </div>
 
         <p className="price-honesty">
-          Niente prezzi inventati. Hardware = snapshot listini (sett. 2026). Giochi e app = listino
-          store + alert quando vanno in sconto o da a pagamento diventano gratis.
+          Trovaprezzi chiede dove costa meno. Cercatrova chiede se è il momento di comprarlo.
         </p>
 
         <div className="radar-search">
           <label className="sr-only" htmlFor="radar-q">
-            Cerca offerte
+            Cerca
           </label>
           <input
             id="radar-q"
@@ -125,11 +136,11 @@ export function HomePage() {
         </div>
 
         <p className="results-count" style={{ marginBottom: '0.85rem' }}>
-          {visible.length} risultat{visible.length === 1 ? 'o' : 'i'}
+          {loading ? 'Cerco nei negozi…' : `${visible.length} risultat${visible.length === 1 ? 'o' : 'i'}`}
         </p>
 
         <div className="deal-list">
-          {visible.length === 0 ? (
+          {!loading && visible.length === 0 ? (
             <p className="watch-empty">Nessun risultato con questi filtri.</p>
           ) : (
             visible.map((deal) => <DealRow key={deal.id} deal={deal} />)
@@ -137,9 +148,9 @@ export function HomePage() {
         </div>
 
         <div className="inline-cta">
-          <p>Vuoi essere avvisato su Telegram quando scende sotto il tuo budget?</p>
+          <p>Tre monitoraggi gratis. Poi Cercatrova Plus a 2,99 €/mese.</p>
           <Link className="btn btn-primary" to="/cerca">
-            Imposta ricerca + Telegram
+            Imposta monitoraggio
           </Link>
         </div>
       </section>
@@ -148,32 +159,33 @@ export function HomePage() {
         <div className="section__head">
           <h2>Come funziona</h2>
           <p>
-            Unisce Trovaprezzi e CamelCamelCamel: cerchi (generico o specifico), confronti i
-            negozi, imposti il limite e ricevi solo il segnale utile.
+            Cerchi ora, confronti col passato, monitori. L’alert arriva solo quando conviene — al
+            tuo prezzo o a un prezzo eccezionale.
           </p>
         </div>
         <div className="steps">
           <article className="step">
             <div className="step__n">01</div>
-            <h3>Cerchi</h3>
+            <h3>Cerchi ora</h3>
             <p>
-              Generico (“NAS 2 bay”) o specifico (“UGREEN DXP2800”). Se non è nel catalogo apriamo
-              comunque i negozi.
+              Generico o specifico. Steam risponde dal negozio. Amazon e il sito ufficiale quando
+              il buybox è leggibile.
             </p>
           </article>
           <article className="step">
             <div className="step__n">02</div>
-            <h3>Confronti</h3>
+            <h3>Giudizio</h3>
             <p>
-              Vedi merchant, media e minimo a 6 mesi. Capisci subito se è un affare o rumore.
+              Prezzo attuale, media, minimo, variazione. Cercatrova dice eccezionale, abbastanza o
+              aspetta — non “il più basso di oggi”.
             </p>
           </article>
           <article className="step">
             <div className="step__n">03</div>
-            <h3>Ti avvisiamo</h3>
+            <h3>Monitori</h3>
             <p>
-              Alert Telegram (o in-app) solo quando scende sotto il tuo limite, diventa gratis o
-              batte il minimo storico.
+              Alert Telegram vero, sul server. Sotto il tuo limite, o quando il prezzo è
+              eccezionale rispetto allo storico.
             </p>
           </article>
         </div>
@@ -182,24 +194,24 @@ export function HomePage() {
       <section className="section">
         <div className="split">
           <div className="section__head" style={{ marginBottom: 0 }}>
-            <h2>Il filtro, non la categoria</h2>
+            <h2>Non un altro canale di offerte</h2>
             <p>
-              Non un altro canale di offerte random. Tu definisci cosa cerchi e il tetto di spesa:
-              il radar elimina il rumore.
+              La ricerca è gratis. Il valore è il monitoraggio: 3 prodotti nel piano free, 20 con
+              Plus. Affiliate sui “compra”, non paywall sulla cerca.
             </p>
           </div>
           <div className="split__visual" aria-hidden>
             <div className="bubble bubble--1">
-              <strong>Generico</strong>
-              <span>NAS 2 bay sotto 400 €</span>
+              <strong>Cerca ora</strong>
+              <span>Amazon · Steam · ufficiale</span>
             </div>
             <div className="bubble bubble--2">
-              <strong>Specifico</strong>
-              <span>UGREEN DXP2800</span>
+              <strong>Conviene?</strong>
+              <span>vs media e minimo</span>
             </div>
             <div className="bubble bubble--3">
               <strong>Telegram</strong>
-              <span>Solo al prezzo giusto</span>
+              <span>Solo al momento giusto</span>
             </div>
           </div>
         </div>
