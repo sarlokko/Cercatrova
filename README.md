@@ -21,11 +21,14 @@ Se obbliga a incollare, **una riga**:
 {"services":{"web":{"image":"ghcr.io/sarlokko/cercatrova:latest","ports":["8787:80"],"restart":"unless-stopped"}}}
 ```
 
-Poi pull:
+Poi **aspetta il publish su GitHub** e forza l’immagine nuova (altrimenti resta quella che crasha):
 
 ```
-docker compose pull && docker compose up -d
+docker compose pull
+docker compose up -d --force-recreate
 ```
+
+Nei log deve comparire subito `Cercatrova http://0.0.0.0:80`. Se non c’è, l’immagine non è quella nuova.
 
 Il database sta dentro il container (`/app/data`). I watch restano finché non cancelli il container.
 

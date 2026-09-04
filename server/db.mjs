@@ -1,7 +1,12 @@
 import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { DatabaseSync } from 'node:sqlite'
 import { SEED_PRODUCTS } from './catalog.mjs'
+
+const sqliteMod = await import('node:sqlite').catch((err) => {
+  console.error('node:sqlite assente', err.message)
+  return null
+})
+const DatabaseSync = sqliteMod?.DatabaseSync
 
 function canWrite(dir) {
   mkdirSync(dir, { recursive: true })
@@ -24,6 +29,7 @@ function openDatabase() {
     try {
       canWrite(dir)
       const path = join(dir, 'cercatrova.sqlite')
+      if (!DatabaseSync) throw new Error('modulo node:sqlite assente')
       const database = new DatabaseSync(path)
       // DELETE, non WAL: i bind-mount NAS/CIFS fanno crashare WAL all’avvio.
       database.exec('PRAGMA journal_mode = DELETE')
@@ -35,10 +41,13 @@ function openDatabase() {
     }
   }
 
-  console.error('sqlite fallback :memory: (i watch non sopravvivono al restart)')
-  const memory = new DatabaseSync(':memory:')
-  memory.exec('PRAGMA foreign_keys = ON')
-  return memory
+  if (DatabaseSync) {
+    console.error('sqlite fallback :memory: (i watch non sopravvivono al restart)')
+    const memory = new DatabaseSync(':memory:')
+    memory.exec('PRAGMA foreign_keys = ON')
+    return memory
+  }
+  throw new Error('SQLite non disponibile su questo Node')
 }
 
 export const db = openDatabase()
