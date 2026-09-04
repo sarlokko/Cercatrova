@@ -1,0 +1,8 @@
+services:
+  web:
+    build: .
+    image: il-cerca-trova:latest
+    container_name: il-cerca-trova
+    ports:
+      - "8787:80"
+    restart: unless-stopped

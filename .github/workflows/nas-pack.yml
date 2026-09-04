@@ -1,0 +1,26 @@
+name: Pacchetto NAS
+
+on:
+  push:
+    branches: [main, cursor/deal-radar-web-43ec]
+  workflow_dispatch:
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Zip per Web Station
+        run: |
+          cd dist
+          zip -r ../il-cerca-trova-nas.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: il-cerca-trova-nas
+          path: il-cerca-trova-nas.zip
