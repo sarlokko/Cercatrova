@@ -5,9 +5,11 @@ import { MonitorPage } from './pages/MonitorPage'
 import { ProductPage } from './pages/ProductPage'
 import './App.css'
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename === '/' ? undefined : basename}>
       <div className="app-shell">
         <Header />
         <main className="site-main">

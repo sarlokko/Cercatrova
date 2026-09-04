@@ -40,7 +40,7 @@ export function Header() {
           <NavLink to="/cerca" onClick={() => setOpen(false)}>
             Cerca
           </NavLink>
-          <a href="/#come-funziona" onClick={() => setOpen(false)}>
+          <a href={`${import.meta.env.BASE_URL}#come-funziona`} onClick={() => setOpen(false)}>
             Come funziona
           </a>
         </nav>

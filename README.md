@@ -1,31 +1,35 @@
 # Il Cerca-Trova
 
-Pagina web pubblica che unisce **confronto prezzi** e **monitoraggio/alert**.
+Pagina web pubblica: confronto prezzi + alert.
 
-## Provalo sul NAS (UGOS Pro)
+## Provalo subito (senza NAS)
 
-Docker → **Progetto** → **Crea**
+https://sarlokko.github.io/Cercatrova/
 
-1. **Nome** (obbligatorio, senno esce “ingresso non può essere vuoto”): `cercatrova`
-2. Cartella: `Cartella condivisa/docker/cercatrova`
-3. Cancella tutto l’YAML rotto e incolla **esattamente** questo (una riga = una riga, niente a capo in mezzo):
+## NAS UGOS Pro — non incollare YAML col telefono
 
-```yaml
-services:
-  web:
-    image: ghcr.io/sarlokko/cercatrova:latest
-    container_name: il-cerca-trova
-    ports:
-      - "8787:80"
-    restart: unless-stopped
+L’editor spezza le righe e il file diventa invalido.
+
+1. File Manager → apri `docker/cercatrova`
+2. Carica questo file (salvalo così, nome esatto):
+
+https://raw.githubusercontent.com/sarlokko/Cercatrova/cursor/deal-radar-web-43ec/compose.yaml
+
+3. Docker → Progetto → **elimina** il progetto rotto se c’è
+4. Crea progetto
+   - Nome: `cercatrova`
+   - Cartella: `docker/cercatrova`
+   - Carica il `compose.yaml` già presente (non riscriverlo a mano)
+5. Distribuisci
+6. http://192.168.31.20:8787
+
+Se proprio devi incollare, usa **una sola riga** JSON:
+
+```json
+{"services":{"web":{"image":"ghcr.io/sarlokko/cercatrova:latest","ports":["8787:80"],"restart":"unless-stopped"}}}
 ```
 
-4. Spunta “Esegui immediatamente dopo la creazione” → **Distribuisci**
-5. Apri http://192.168.31.20:8787
-
-Se l’immagine non si scarica, su GitHub → Packages rendi pubblico `cercatrova`.
-
-## Avvio in locale
+## Locale
 
 ```bash
 npm install
