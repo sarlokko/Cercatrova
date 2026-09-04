@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { PriceChart } from '../components/PriceChart'
 import {
   categoryLabel,
+  formatCheckedAt,
   formatPrice,
   getDeal,
   kindLabel,
@@ -94,21 +95,27 @@ export function ProductPage() {
 
           <h1>{deal.title}</h1>
           <p>{deal.subtitle}</p>
+          <p className="field-hint" style={{ marginBottom: '1rem' }}>
+            Snapshot del {formatCheckedAt(deal.checkedAt)}. Il totale in cassa è quello del negozio,
+            oggi.
+          </p>
 
           <div className="price-board">
             <div className={`price-board__now${deal.isFree ? ' free' : ''}`}>
               {formatPrice(deal.currentPrice, deal.currency)}
             </div>
+            {deal.discountPct > 0 ? (
+              <div className="price-stat">
+                Prezzo normale
+                <strong>{formatPrice(deal.normalPrice, deal.currency)}</strong>
+              </div>
+            ) : null}
             <div className="price-stat">
-              Prezzo normale
-              <strong>{formatPrice(deal.normalPrice, deal.currency)}</strong>
-            </div>
-            <div className="price-stat">
-              Media recente
+              Fascia osservata
               <strong>{formatPrice(deal.avgPrice, deal.currency)}</strong>
             </div>
             <div className="price-stat">
-              Minimo 6 mesi
+              Minimo nello snapshot
               <strong>{formatPrice(deal.minPrice6m, deal.currency)}</strong>
             </div>
           </div>

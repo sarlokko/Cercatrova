@@ -1,12 +1,6 @@
 export type Category = 'software' | 'nas' | 'gaming'
 
-export type DealKind =
-  | 'gratis'
-  | 'sconto'
-  | 'minimo'
-  | 'errore'
-  | 'coupon'
-  | 'scade'
+export type DealKind = 'gratis' | 'sconto' | 'minimo' | 'errore' | 'coupon' | 'scade' | 'listino'
 
 export type Merchant = {
   name: string
@@ -38,7 +32,11 @@ export type Deal = {
   history: PricePoint[]
   expiresAt?: string
   tags: string[]
+  checkedAt: string
 }
+
+/** Snapshot listini pubblici, non un feed in tempo reale. */
+export const PRICES_CHECKED_AT = '2026-09-04'
 
 const daysAgo = (n: number) => {
   const d = new Date()
@@ -68,222 +66,129 @@ const wave = (
 
 export const deals: Deal[] = [
   {
-    id: 'soft-notion-ai',
-    title: 'Notion AI Plus — 1 anno',
-    subtitle: 'Di solito 96 €/anno. Oggi gratis per studenti.',
-    category: 'software',
-    kind: 'gratis',
-    currentPrice: 0,
-    normalPrice: 96,
-    currency: '€',
-    discountPct: 100,
-    avgPrice: 96,
-    minPrice6m: 0,
-    isFree: true,
-    imageTone: '#1b4332',
-    merchants: [
-      { name: 'Notion', price: 0, url: '#', shipping: 'Attivazione immediata' },
-      { name: 'App Store Edu', price: 0, url: '#' },
-    ],
-    history: wave(96, 40, 0, 0),
-    expiresAt: '2026-09-12',
-    tags: ['AI', 'produttività', 'lifetime-ish'],
-  },
-  {
-    id: 'soft-cleanmymac',
-    title: 'CleanMyMac X Pro',
-    subtitle: 'Licenza lifetime su stack lifetime deal.',
-    category: 'software',
-    kind: 'sconto',
-    currentPrice: 29.99,
-    normalPrice: 89.95,
-    currency: '€',
-    discountPct: 67,
-    avgPrice: 64,
-    minPrice6m: 29.99,
-    isFree: false,
-    imageTone: '#0d3b66',
-    merchants: [
-      { name: 'AppSumo', price: 29.99, url: '#', shipping: 'Licenza digitale' },
-      { name: 'MacPaw', price: 89.95, url: '#' },
-      { name: 'Amazon Software', price: 79.99, url: '#' },
-    ],
-    history: wave(79, 40, 8, 29.99),
-    expiresAt: '2026-09-08',
-    tags: ['Mac', 'utility', 'lifetime'],
-  },
-  {
-    id: 'soft-midjourney',
-    title: 'Midjourney — crediti promo',
-    subtitle: '25 crediti gratis per nuovi account (valore ~10 €).',
-    category: 'software',
-    kind: 'gratis',
-    currentPrice: 0,
-    normalPrice: 10,
-    currency: '€',
-    discountPct: 100,
-    avgPrice: 10,
-    minPrice6m: 0,
-    isFree: true,
-    imageTone: '#3d0c11',
-    merchants: [{ name: 'Midjourney', price: 0, url: '#' }],
-    history: wave(10, 20, 0, 0),
-    tags: ['AI', 'immagini', 'crediti'],
-  },
-  {
-    id: 'soft-figma-pro',
-    title: 'Figma Professional',
-    subtitle: '3 mesi a 0 € con codice partner nascosto.',
-    category: 'software',
-    kind: 'coupon',
-    currentPrice: 0,
-    normalPrice: 45,
-    currency: '€',
-    discountPct: 100,
-    avgPrice: 15,
-    minPrice6m: 0,
-    isFree: true,
-    imageTone: '#1a1a2e',
-    merchants: [
-      { name: 'Figma + coupon', price: 0, url: '#' },
-      { name: 'Figma listino', price: 15, url: '#' },
-    ],
-    history: wave(15, 30, 2, 0),
-    expiresAt: '2026-09-05',
-    tags: ['design', 'SaaS', 'coupon'],
-  },
-  {
     id: 'nas-wd-red-12',
     title: 'WD Red Plus 12TB',
-    subtitle: 'HDD NAS CMR — −18% sul prezzo medio.',
+    subtitle: 'HDD NAS CMR (WD120EFGX). Amazon.it intorno ai 399 €, non a 180 €.',
     category: 'nas',
-    kind: 'minimo',
-    currentPrice: 179.9,
-    normalPrice: 249,
+    kind: 'listino',
+    currentPrice: 399,
+    normalPrice: 399,
     currency: '€',
-    discountPct: 28,
-    avgPrice: 219,
-    minPrice6m: 179.9,
+    discountPct: 0,
+    avgPrice: 449,
+    minPrice6m: 399,
     isFree: false,
     imageTone: '#1d3557',
+    checkedAt: PRICES_CHECKED_AT,
     merchants: [
-      { name: 'Amazon', price: 179.9, url: '#', shipping: 'Prime' },
-      { name: 'eBay', price: 184.5, url: '#', shipping: '+4,90 sped.' },
-      { name: 'LDLC', price: 189.0, url: '#', shipping: 'Gratis >99€' },
-      { name: 'Alternate', price: 192.9, url: '#' },
+      {
+        name: 'Amazon',
+        price: 399,
+        url: 'https://www.amazon.it/Plus-12TB-Hard-Disk-Interno/dp/B0F4R6SNJG',
+        shipping: 'Prime · buy box sett. 2026',
+      },
+      {
+        name: 'eBay',
+        price: 419,
+        url: 'https://www.ebay.it/sch/i.html?_nkw=WD+Red+Plus+12TB',
+        shipping: 'usato/nuovo, varia',
+      },
     ],
-    history: wave(235, 50, 12, 179.9),
-    tags: ['HDD', 'NAS', '12TB'],
+    history: wave(480, 40, 18, 399),
+    tags: ['HDD', 'NAS', '12TB', 'WD120EFGX'],
   },
   {
     id: 'nas-synology-ds224',
     title: 'Synology DS224+',
-    subtitle: '2-bay NAS — sotto budget 280 €.',
+    subtitle: 'NAS 2-bay. Street price Italia circa 389–415 €.',
     category: 'nas',
-    kind: 'sconto',
-    currentPrice: 274.0,
-    normalPrice: 329,
+    kind: 'listino',
+    currentPrice: 389,
+    normalPrice: 389,
     currency: '€',
-    discountPct: 17,
-    avgPrice: 305,
-    minPrice6m: 269,
+    discountPct: 0,
+    avgPrice: 405,
+    minPrice6m: 389,
     isFree: false,
     imageTone: '#264653',
+    checkedAt: PRICES_CHECKED_AT,
     merchants: [
-      { name: 'Amazon', price: 274.0, url: '#', shipping: 'Prime' },
-      { name: 'MoreLE', price: 279.0, url: '#' },
-      { name: 'Synology Store', price: 329.0, url: '#' },
+      {
+        name: 'Amazon',
+        price: 399,
+        url: 'https://www.amazon.it/s?k=Synology+DS224%2B',
+        shipping: 'verifica scheda',
+      },
+      {
+        name: 'PcComponentes',
+        price: 414.99,
+        url: 'https://www.pccomponentes.it/synology-diskstation-ds224-plus-nas',
+      },
     ],
-    history: wave(320, 45, 15, 274),
+    history: wave(430, 36, 12, 389),
     tags: ['NAS', 'Synology', '2-bay'],
   },
   {
     id: 'nas-samsung-990',
     title: 'Samsung 990 PRO 2TB',
-    subtitle: 'SSD NVMe per cache NAS / workstation.',
+    subtitle: 'SSD NVMe. Listini Italia circa 240–350 € a seconda del heatsink.',
     category: 'nas',
-    kind: 'minimo',
-    currentPrice: 139.99,
-    normalPrice: 219,
+    kind: 'listino',
+    currentPrice: 249,
+    normalPrice: 249,
     currency: '€',
-    discountPct: 36,
-    avgPrice: 175,
-    minPrice6m: 139.99,
+    discountPct: 0,
+    avgPrice: 280,
+    minPrice6m: 239.5,
     isFree: false,
     imageTone: '#14213d',
+    checkedAt: PRICES_CHECKED_AT,
     merchants: [
-      { name: 'Amazon', price: 139.99, url: '#', shipping: 'Prime' },
-      { name: 'eBay', price: 142.0, url: '#' },
-      { name: 'MediaWorld', price: 159.0, url: '#' },
+      {
+        name: 'Amazon',
+        price: 249,
+        url: 'https://www.amazon.it/s?k=samsung+990+pro+2tb',
+      },
+      {
+        name: 'MediaWorld',
+        price: 279,
+        url: 'https://www.mediaworld.it/search?q=samsung%20990%20pro%202tb',
+      },
     ],
-    history: wave(195, 48, 14, 139.99),
+    history: wave(310, 40, 16, 249),
     tags: ['SSD', 'NVMe', '2TB'],
   },
   {
     id: 'nas-crucial-32ram',
-    title: 'Crucial DDR4 32GB (2x16) SODIMM',
-    subtitle: 'RAM per upgrade NAS / mini PC.',
+    title: 'Crucial DDR4 32GB SODIMM',
+    subtitle: 'Kit 2x16 3200 MHz. Amazon.it intorno ai 239–249 €, non a 50 €.',
     category: 'nas',
-    kind: 'errore',
-    currentPrice: 49.9,
-    normalPrice: 89,
+    kind: 'listino',
+    currentPrice: 239,
+    normalPrice: 239,
     currency: '€',
-    discountPct: 44,
-    avgPrice: 78,
-    minPrice6m: 49.9,
+    discountPct: 0,
+    avgPrice: 255,
+    minPrice6m: 239,
     isFree: false,
     imageTone: '#2b2d42',
+    checkedAt: PRICES_CHECKED_AT,
     merchants: [
-      { name: 'Amazon', price: 49.9, url: '#', shipping: 'Errore prezzo?' },
-      { name: 'Alternate', price: 74.9, url: '#' },
+      {
+        name: 'Amazon',
+        price: 239,
+        url: 'https://www.amazon.it/dp/B07ZLC7VNH',
+        shipping: 'CT32G4SFD832A / kit 2x16 simile',
+      },
+      {
+        name: 'Amazon (kit 2x16)',
+        price: 249,
+        url: 'https://www.amazon.it/Crucial-CT2K16G4SFRA32A-2x16GB-Memoria-Laptop/dp/B08C4X9VR5',
+        shipping: 'CT2K16G4SFRA32A',
+      },
     ],
-    history: wave(85, 35, 6, 49.9),
-    expiresAt: '2026-09-04',
-    tags: ['RAM', 'SODIMM', 'upgrade'],
-  },
-  {
-    id: 'game-control',
-    title: 'Control Ultimate Edition',
-    subtitle: 'Gratis su Epic — di solito da 39,99 €.',
-    category: 'gaming',
-    kind: 'gratis',
-    currentPrice: 0,
-    normalPrice: 39.99,
-    currency: '€',
-    discountPct: 100,
-    avgPrice: 18,
-    minPrice6m: 0,
-    isFree: true,
-    imageTone: '#240046',
-    merchants: [
-      { name: 'Epic Games', price: 0, url: '#' },
-      { name: 'Steam', price: 39.99, url: '#' },
-    ],
-    history: wave(39.99, 40, 8, 0),
-    expiresAt: '2026-09-11',
-    tags: ['PC', 'gratis limitato', '≥20€'],
-  },
-  {
-    id: 'game-hades2',
-    title: 'Hades II',
-    subtitle: '−80% flash — minimo storico su Steam.',
-    category: 'gaming',
-    kind: 'scade',
-    currentPrice: 5.99,
-    normalPrice: 29.99,
-    currency: '€',
-    discountPct: 80,
-    avgPrice: 24,
-    minPrice6m: 5.99,
-    isFree: false,
-    imageTone: '#3c096c',
-    merchants: [
-      { name: 'Steam', price: 5.99, url: '#' },
-      { name: 'Humble', price: 7.49, url: '#' },
-    ],
-    history: wave(29.99, 30, 4, 5.99),
-    expiresAt: '2026-09-04',
-    tags: ['PC', '−80%', 'scade oggi'],
+    history: wave(270, 32, 10, 239),
+    tags: ['RAM', 'SODIMM', '32GB', 'DDR4'],
   },
 ]
 
@@ -294,6 +199,7 @@ export const kindLabel: Record<DealKind, string> = {
   errore: 'Errore di prezzo',
   coupon: 'Coupon nascosto',
   scade: 'Scade oggi',
+  listino: 'Listino verificato',
 }
 
 export const categoryLabel: Record<Category, string> = {
@@ -309,4 +215,9 @@ export function formatPrice(price: number, currency = '€') {
 
 export function getDeal(id: string) {
   return deals.find((d) => d.id === id)
+}
+
+export function formatCheckedAt(iso = PRICES_CHECKED_AT) {
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
 }

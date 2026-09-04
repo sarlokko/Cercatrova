@@ -32,7 +32,7 @@ export function DealRow({ deal }: Props) {
         <div className="deal-tags">
           <span
             className={`tag${
-              deal.kind === 'gratis'
+              deal.kind === 'gratis' || deal.kind === 'listino'
                 ? ' tag--signal'
                 : deal.kind === 'errore' || deal.kind === 'scade'
                   ? ' tag--alert'
@@ -49,16 +49,16 @@ export function DealRow({ deal }: Props) {
         <div className={`deal-price__now${deal.isFree ? ' free' : ''}`}>
           {formatPrice(deal.currentPrice, deal.currency)}
         </div>
-        {!deal.isFree ? (
-          <div className="deal-price__was">{formatPrice(deal.normalPrice, deal.currency)}</div>
+        {deal.discountPct > 0 ? (
+          <>
+            <div className="deal-price__was">{formatPrice(deal.normalPrice, deal.currency)}</div>
+            <div className="deal-price__delta">
+              {deal.isFree ? '100% risparmio' : `−${deal.discountPct}%`}
+            </div>
+          </>
         ) : (
-          <div className="deal-price__was">
-            di solito {formatPrice(deal.normalPrice, deal.currency)}
-          </div>
+          <div className="deal-price__delta">prezzo di mercato</div>
         )}
-        <div className="deal-price__delta">
-          {deal.isFree ? '100% risparmio' : `−${deal.discountPct}%`}
-        </div>
       </div>
     </Link>
   )

@@ -24,7 +24,7 @@ export function MonitorPage() {
   const [mode, setMode] = useState<SearchMode>('generico')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<'all' | Category>('all')
-  const [maxPrice, setMaxPrice] = useState('200')
+  const [maxPrice, setMaxPrice] = useState('')
   const [onlyFree, setOnlyFree] = useState(false)
   const [wantTelegram, setWantTelegram] = useState(Boolean(prefs?.username))
   const [telegram, setTelegram] = useState(prefs?.username ?? '')
@@ -53,10 +53,11 @@ export function MonitorPage() {
       setToast('Scrivi cosa cerchi oppure scegli una categoria.')
       return
     }
-    if (maxPriceNum == null || Number.isNaN(maxPriceNum)) {
-      setToast('Imposta un limite di prezzo.')
+    if (maxPrice.trim() !== '' && (maxPriceNum == null || Number.isNaN(maxPriceNum))) {
+      setToast('Limite prezzo non valido.')
       return
     }
+    const target = maxPriceNum == null || Number.isNaN(maxPriceNum) ? 0 : maxPriceNum
     if (wantTelegram && !telegram.trim()) {
       setToast('Inserisci il tuo @username Telegram.')
       return
@@ -74,7 +75,7 @@ export function MonitorPage() {
     addWatch({
       id: `search-${Date.now()}`,
       title: label,
-      targetPrice: maxPriceNum,
+      targetPrice: target,
       query: q || undefined,
       mode,
       category,
@@ -85,7 +86,7 @@ export function MonitorPage() {
         mode === 'generico' ? 'Ricerca generica' : 'Ricerca specifica',
         category !== 'all' ? categoryLabel[category] : null,
         onlyFree ? 'solo gratis' : null,
-        `max ${formatPrice(maxPriceNum)}`,
+        target > 0 ? `max ${formatPrice(target)}` : 'senza tetto',
       ]
         .filter(Boolean)
         .join(' · '),
@@ -93,8 +94,8 @@ export function MonitorPage() {
 
     setToast(
       wantTelegram
-        ? `Alert salvato. Notifiche Telegram su ${tg} sotto ${formatPrice(maxPriceNum)}.`
-        : `Alert salvato sotto ${formatPrice(maxPriceNum)}. Attiva Telegram per riceverle sul telefono.`,
+        ? `Alert salvato. Notifiche Telegram su ${tg}${target > 0 ? ` sotto ${formatPrice(target)}` : ''}.`
+        : `Alert salvato${target > 0 ? ` sotto ${formatPrice(target)}` : ''}.`,
     )
     refresh()
   }
@@ -188,16 +189,15 @@ export function MonitorPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="search-max">Limite prezzo (€)</label>
+            <label htmlFor="search-max">Limite prezzo (€, vuoto = nessuno)</label>
             <input
               id="search-max"
               type="number"
               min={0}
               step="0.01"
-              placeholder="es. 180"
+              placeholder="es. 400"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              required
             />
           </div>
           <div className="check-field">

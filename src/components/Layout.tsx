@@ -62,7 +62,7 @@ export function Footer() {
           <strong>{BRAND_NAME}</strong>
           <p>Confronto prezzi + storico + alert. Solo il segnale utile.</p>
         </div>
-        <p>Demo pubblica · dati di esempio · affiliate-ready</p>
+        <p>Demo · prezzi hardware allineati ai listini pubblici (sett. 2026), non in tempo reale.</p>
       </div>
     </footer>
   )

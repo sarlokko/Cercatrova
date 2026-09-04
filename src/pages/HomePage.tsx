@@ -58,8 +58,8 @@ export function HomePage() {
           <div className="ticket">
             <span className="ticket__stamp">Trovato!</span>
             <p>WD Red Plus 12TB</p>
-            <strong>€179,90</strong>
-            <small>−18% sul prezzo medio</small>
+            <strong>€399</strong>
+            <small>Amazon.it · sett. 2026</small>
           </div>
         </aside>
       </section>
@@ -68,10 +68,15 @@ export function HomePage() {
         <div className="section__head">
           <h2>Deal Radar</h2>
           <p>
-            Scrivi cosa ti serve, anche in modo generico (“hdd”, “disco per nas”). I risultati si
-            aggiornano mentre digiti — niente menu da cui scegliere il prodotto.
+            Filtra per testo e prezzo. I prezzi hardware sono uno snapshot dei listini (sett. 2026),
+            non un magazzino in tempo reale: apri il negozio per il totale di oggi.
           </p>
         </div>
+
+        <p className="price-honesty">
+          Un HDD NAS 12TB non costa 180 €: il WD Red Plus è intorno ai 399 € su Amazon.it. Niente
+          “errori di prezzo” inventati.
+        </p>
 
         <div className="radar-search">
           <label className="sr-only" htmlFor="radar-q">
