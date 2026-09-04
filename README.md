@@ -17,39 +17,31 @@ npm install
 npm run dev
 ```
 
-## Provalo sul NAS
+## Provalo sul NAS (Synology Container Manager)
 
-Da questo ambiente cloud non si può raggiungere la tua LAN. Sul NAS:
+1. Container Manager → **Progetto** → **Crea**
+2. Nome: `il-cerca-trova`
+3. Percorso: la cartella che hai già creato (può restare **vuota**)
+4. Sorgente: **Crea docker-compose.yml**
+5. Incolla questo:
 
-### Opzione A — Docker (consigliata, Synology Container Manager / QNAP)
-
-SSH sul NAS oppure Task Scheduler:
-
-```bash
-git clone https://github.com/sarlokko/Cercatrova.git
-cd Cercatrova
-git checkout cursor/deal-radar-web-43ec
-docker compose up -d --build
+```yaml
+services:
+  web:
+    build:
+      context: https://github.com/sarlokko/Cercatrova.git#cursor/deal-radar-web-43ec
+      dockerfile: Dockerfile
+    image: il-cerca-trova:latest
+    container_name: il-cerca-trova
+    ports:
+      - "8787:80"
+    restart: unless-stopped
 ```
 
-Poi apri **http://IP-DEL-NAS:8787**  
-(es. `http://192.168.1.20:8787`)
+6. Avvia il progetto (il primo avvio impiega qualche minuto: scarica e compila il sito).
+7. Apri **http://IP-DEL-NAS:8787**
 
-Per aggiornare:
-
-```bash
-cd Cercatrova && git pull && docker compose up -d --build
-```
-
-Su **Synology**: Container Manager → Progetto → Crea → percorso della cartella del repo (c’è già `docker-compose.yml`). Porta host `8787`.
-
-### Opzione B — Web Station (solo file statici)
-
-```bash
-npm run pack:nas
-```
-
-Copia `il-cerca-trova-nas.zip` in una cartella web del NAS, scompatta, abilita il virtual host. C’è già un `.htaccess` per Apache.
+Se il build da GitHub fallisce, clona il repo **dentro** quella cartella e usa `build: .` al posto del `context:` GitHub.
 
 ## Stack
 

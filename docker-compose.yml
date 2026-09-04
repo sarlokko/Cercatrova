@@ -1,6 +1,11 @@
+# Incolla questo file così com'è in Container Manager → Progetto.
+# Non serve copiare il codice nella cartella: Docker lo scarica da GitHub.
+
 services:
   web:
-    build: .
+    build:
+      context: https://github.com/sarlokko/Cercatrova.git#cursor/deal-radar-web-43ec
+      dockerfile: Dockerfile
     image: il-cerca-trova:latest
     container_name: il-cerca-trova
     ports:
