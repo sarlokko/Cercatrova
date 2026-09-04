@@ -2,7 +2,7 @@ import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
 import { DealRow } from '../components/DealRow'
-import { type Category, deals } from '../data/deals'
+import { type Category } from '../data/deals'
 import { searchDeals } from '../lib/search'
 
 const filters: Array<{ id: 'all' | Category; label: string }> = [
@@ -22,7 +22,7 @@ export function HomePage() {
     const max = maxPrice.trim() === '' ? null : Number(maxPrice)
     return searchDeals({
       query: deferredQuery,
-      mode: deferredQuery.trim().split(/\s+/).length >= 3 ? 'specifico' : 'generico',
+      mode: 'generico',
       category: filter,
       maxPrice: max != null && Number.isFinite(max) ? max : null,
       onlyFree: false,
@@ -68,8 +68,8 @@ export function HomePage() {
         <div className="section__head">
           <h2>Deal Radar</h2>
           <p>
-            Filtra per testo, categoria e prezzo massimo. Poi salva la ricerca con notifica
-            Telegram dalla pagina Cerca.
+            Scrivi cosa ti serve, anche in modo generico (“hdd”, “disco per nas”). I risultati si
+            aggiornano mentre digiti — niente menu da cui scegliere il prodotto.
           </p>
         </div>
 
@@ -80,16 +80,13 @@ export function HomePage() {
           <input
             id="radar-q"
             className="radar-search__input"
-            placeholder="Cerca: HDD NAS, Synology, lifetime, gratis…"
+            placeholder="Scrivi cosa cerchi: hdd, nas, ssd, software gratis…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            list="radar-suggestions"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
           />
-          <datalist id="radar-suggestions">
-            {deals.map((d) => (
-              <option key={d.id} value={d.title} />
-            ))}
-          </datalist>
           <label className="sr-only" htmlFor="radar-max">
             Prezzo massimo
           </label>

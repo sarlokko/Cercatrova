@@ -113,8 +113,8 @@ export function MonitorPage() {
       <div className="section__head">
         <h2>Cerca e filtra</h2>
         <p>
-          Ricerca generica (es. “HDD NAS”, “software AI”) o specifica (modello esatto). Imposta il
-          limite di prezzo e, se vuoi, le notifiche su Telegram.
+          Ricerca intelligente: scrivi “hdd” e trovi i dischi, senza scegliere da un elenco. Poi
+          imposta il limite di prezzo e, se vuoi, le notifiche su Telegram.
         </p>
       </div>
 
@@ -147,17 +147,13 @@ export function MonitorPage() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder={
             mode === 'generico'
-              ? 'Es. HDD per NAS, lifetime deal Mac, giochi gratis…'
-              : 'Es. WD Red Plus 12TB, Synology DS224+…'
+              ? 'Scrivi liberamente: hdd, disco per nas, software gratis…'
+              : 'Modello esatto: WD Red Plus 12TB…'
           }
-          list="deal-suggestions"
           autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
         />
-        <datalist id="deal-suggestions">
-          {deals.map((d) => (
-            <option key={d.id} value={d.title} />
-          ))}
-        </datalist>
 
         {mode === 'generico' ? (
           <div className="suggest-row" aria-label="Suggerimenti">

@@ -7,6 +7,7 @@ import {
   getDeal,
   kindLabel,
 } from '../data/deals'
+import { merchantOfferUrl } from '../lib/offers'
 import {
   addWatch,
   getTelegramPrefs,
@@ -125,7 +126,12 @@ export function ProductPage() {
                 <div className="merchant-row__price">
                   {formatPrice(m.price, deal.currency)}
                 </div>
-                <a className="btn btn-ghost" href={m.url}>
+                <a
+                  className="btn btn-ghost"
+                  href={merchantOfferUrl(m, deal)}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
                   Vai all’offerta
                 </a>
               </div>
