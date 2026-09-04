@@ -29,15 +29,15 @@ const STOP = new Set(['per', 'del', 'della', 'dei', 'delle', 'con', 'una', 'uno'
 
 /** Gruppi di sinonimi: cerchi “hdd” e trovi WD Red / NAS disk, senza scegliere dal menu. */
 const GROUPS: string[][] = [
-  ['hdd', 'hard', 'disk', 'disco', 'rigido', 'harddisk', 'wd', 'red', 'ironwolf', 'cmr', 'tb'],
-  ['ssd', 'nvme', 'samsung', '990', 'nvme'],
+  ['hdd', 'harddisk', 'disco', 'rigido', 'ironwolf', 'cmr'],
+  ['ssd', 'nvme'],
   ['ram', 'memoria', 'sodimm', 'ddr', 'ddr4', 'crucial'],
   ['nas', 'synology', 'qnap', 'terramaster', 'storage', 'bay', 'ds224'],
   ['gratis', 'free', 'zero', 'omaggio'],
   ['lifetime', 'licenza', 'perpetua'],
-  ['ai', 'crediti', 'midjourney', 'chatgpt'],
+  ['ai', 'crediti', 'midjourney'],
   ['mac', 'macos', 'cleanmymac'],
-  ['gioco', 'giochi', 'game', 'games', 'steam', 'epic', 'pc'],
+  ['gioco', 'giochi', 'game', 'games', 'steam', 'epic'],
   ['coupon', 'sconto', 'promo', 'offerta'],
 ]
 
@@ -83,24 +83,25 @@ function scoreDeal(deal: Deal, filters: SearchFilters): number {
   const { raw, expanded } = expand(q)
   if (raw.length === 0) return 1
 
-  const title = normalize(deal.title)
-  const all = haystack(deal)
+  const titleTok = new Set(tokens(deal.title))
+  const allTok = new Set(tokens(haystack(deal)))
+  const tagTok = new Set(deal.tags.flatMap((tag) => tokens(tag)))
   const wantsFree = expanded.includes('gratis') || expanded.includes('free') || expanded.includes('zero')
 
   if (filters.mode === 'specifico') {
-    const hit = raw.filter((t) => title.includes(t) || deal.tags.some((tag) => normalize(tag).includes(t))).length
+    const hit = raw.filter((t) => titleTok.has(t) || tagTok.has(t)).length
     if (hit < Math.ceil(raw.length * 0.5)) return -1
   }
 
   let score = 0
   for (const t of expanded) {
-    if (title.includes(t)) score += 6
-    else if (deal.tags.some((tag) => normalize(tag) === t || normalize(tag).includes(t))) score += 5
-    else if (all.includes(t)) score += 2
+    if (titleTok.has(t)) score += 6
+    else if (tagTok.has(t)) score += 5
+    else if (allTok.has(t)) score += 2
   }
 
   if (wantsFree && deal.isFree) score += 8
-  if (raw.some((t) => title.includes(t))) score += 3
+  if (raw.some((t) => titleTok.has(t) || tagTok.has(t) || allTok.has(t))) score += 4
 
   return score > 0 ? score : -1
 }
