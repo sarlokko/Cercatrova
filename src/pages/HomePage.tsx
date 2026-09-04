@@ -32,24 +32,11 @@ export function HomePage() {
   return (
     <>
       <section className="hero" aria-label="Hero">
-        <div className="hero__radar" aria-hidden>
-          <div className="hero__radar-ring" />
-          <div className="hero__radar-ring" />
-          <div className="hero__radar-ring" />
-          <div className="hero__radar-ring" />
-          <div className="hero__sweep" />
-          <span className="hero__blip hero__blip--1" />
-          <span className="hero__blip hero__blip--2" />
-          <span className="hero__blip hero__blip--3" />
-        </div>
-
         <div className="hero__content">
           <div className="hero__brand-row">
-            <BrandMark size={56} className="hero__mark" />
+            <BrandMark size={52} className="hero__mark" />
             <p className="hero__brand">
-              <span>
-                Il <em>Cerca-Trova</em>
-              </span>
+              Il <em>Cerca-Trova</em>
             </p>
           </div>
           <h1 className="hero__headline">Ti avviso solo quando il prezzo è quello giusto.</h1>
@@ -66,6 +53,15 @@ export function HomePage() {
             </Link>
           </div>
         </div>
+
+        <aside className="hero__ticket" aria-hidden>
+          <div className="ticket">
+            <span className="ticket__stamp">Trovato!</span>
+            <p>WD Red Plus 12TB</p>
+            <strong>€179,90</strong>
+            <small>−18% sul prezzo medio</small>
+          </div>
+        </aside>
       </section>
 
       <section className="section" id="radar">
