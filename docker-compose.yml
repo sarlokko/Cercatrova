@@ -1,12 +1,9 @@
-# Incolla questo file così com'è in Container Manager → Progetto.
-# Non serve copiare il codice nella cartella: Docker lo scarica da GitHub.
+# Per UGOS Pro / Docker → Progetto.
+# Non serve build: scarica l'immagine già pronta.
 
 services:
   web:
-    build:
-      context: https://github.com/sarlokko/Cercatrova.git#cursor/deal-radar-web-43ec
-      dockerfile: Dockerfile
-    image: il-cerca-trova:latest
+    image: ghcr.io/sarlokko/cercatrova:latest
     container_name: il-cerca-trova
     ports:
       - "8787:80"
