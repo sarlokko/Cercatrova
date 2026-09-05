@@ -131,10 +131,10 @@ export function MonitorPage() {
   return (
     <div className="section" style={{ paddingTop: '2rem' }}>
       <div className="section__head">
-        <h2>Cerca e monitora</h2>
+        <h2>Monitora</h2>
         <p>
-          È questo il momento giusto per comprarlo? La cerca è gratis. Il monitoraggio vive sul
-          server: {me ? `${me.used}/${me.limit}` : '…'} slot
+          La cerca guidata sta in home. Qui salvi l’alert sul server:{' '}
+          {me ? `${me.used}/${me.limit}` : '…'} slot
           {me?.telegram.linked ? ' · Telegram collegato' : ''}.
         </p>
       </div>

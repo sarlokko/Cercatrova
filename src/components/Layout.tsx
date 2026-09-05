@@ -35,19 +35,16 @@ export function Header() {
 
         <nav className={`nav-links${open ? ' open' : ''}`} aria-label="Principale">
           <NavLink to="/" end onClick={() => setOpen(false)}>
-            Radar
-          </NavLink>
-          <NavLink to="/cerca" onClick={() => setOpen(false)}>
             Cerca
           </NavLink>
-          <a href={`${import.meta.env.BASE_URL}#come-funziona`} onClick={() => setOpen(false)}>
-            Come funziona
-          </a>
+          <NavLink to="/cerca" onClick={() => setOpen(false)}>
+            Monitora
+          </NavLink>
         </nav>
 
         <Link to="/cerca" className="nav-cta">
           <span className="nav-cta__dot" aria-hidden />
-          Cerca + Telegram
+          Monitora
         </Link>
       </div>
     </header>
