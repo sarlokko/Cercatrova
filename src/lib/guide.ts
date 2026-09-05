@@ -27,7 +27,7 @@ export function walkStep(root: GuideStep, path: GuideChoice[]): GuideStep {
 }
 
 export function buildQuery(path: GuideChoice[], extra = '') {
-  const bits = path.map((c) => c.query || c.label).filter(Boolean)
+  const bits = path.map((c) => (c.query || '').trim()).filter(Boolean)
   if (extra.trim()) bits.push(extra.trim())
   return bits.join(' ').replace(/\s+/g, ' ').trim()
 }
@@ -100,7 +100,6 @@ export const GUIDE_ROOT: GuideStep = {
       id: 'pc',
       label: 'Componenti PC',
       hint: 'case, CPU, GPU, RAM…',
-      query: 'pc',
       category: 'pc',
       next: pcPartsStep(),
     },
