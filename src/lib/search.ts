@@ -39,7 +39,7 @@ const STOP = new Set(['per', 'del', 'della', 'dei', 'delle', 'con', 'una', 'uno'
 const GROUPS: string[][] = [
   ['hdd', 'harddisk', 'disco', 'rigido', 'ironwolf', 'cmr'],
   ['ssd', 'nvme'],
-  ['ram', 'memoria', 'sodimm', 'dimm', 'ddr', 'ddr4', 'ddr5', 'crucial'],
+  ['ram', 'memoria', 'sodimm', 'dimm', 'ddr', 'ddr4', 'ddr5'],
   ['cpu', 'processore', 'ryzen', 'intel'],
   ['gpu', 'rtx', 'radeon', 'geforce'],
   ['case', 'cabinet', 'torre', 'chassis'],
