@@ -6,13 +6,10 @@ export function assembleProduct(id) {
   if (!row) return null
   const listings = listingsFor(id)
   const historyRows = priceHistory(id, 180)
-  const priced = listings.filter((l) => l.last_price != null)
-  const free = row.free === 1 || priced.some((l) => Number(l.last_price) === 0 && /libre|vlc|videolan/i.test(l.store))
-  const current = free
-    ? 0
-    : priced.length
-      ? Math.min(...priced.map((l) => Number(l.last_price)))
-      : null
+  const free =
+    row.free === 1 || listings.some((l) => /libre|vlc|videolan/i.test(l.store) && Number(l.last_price) === 0)
+  const priced = listings.filter((l) => l.last_price != null && Number(l.last_price) > 0)
+  const current = free ? 0 : priced.length ? Math.min(...priced.map((l) => Number(l.last_price))) : null
   const listCandidates = listings.map((l) => l.list_price).filter((n) => n != null)
   const list = listCandidates.length ? Math.max(...listCandidates.map(Number)) : null
   const samples = historyRows.length
