@@ -1,6 +1,7 @@
 /** Metadati noti. I prezzi NON stanno qui: arrivano dai collector. */
 
 import { PC_SEED_PRODUCTS } from './catalog-pc.mjs'
+import { gameStorefronts } from './collectors/stores.mjs'
 
 export const SEED_PRODUCTS = [
   {
@@ -252,6 +253,32 @@ export const SEED_PRODUCTS = [
     ],
   },
   {
+    id: 'game-gta6',
+    title: 'Grand Theft Auto VI',
+    subtitle:
+      'Prevendita. Confronto Xbox, PlayStation Store e i negozi PC: il prezzo solo se lo store risponde.',
+    category: 'steam',
+    tags: ['gioco', 'gta', 'gta6', 'vi', 'prevendita', 'preordine', 'xbox', 'playstation'],
+    imageTone: '#1a472a',
+    listings: [
+      {
+        store: 'Xbox',
+        url: 'https://www.xbox.com/it-IT/games/store/grand-theft-auto-vi/9p3h4968grsm',
+        externalId: '9P3H4968GRSM',
+      },
+      {
+        store: 'PlayStation Store',
+        url: 'https://store.playstation.com/it-it/search/Grand%20Theft%20Auto%20VI',
+        externalId: 'ps-gta6',
+      },
+      {
+        store: 'Steam',
+        url: 'https://store.steampowered.com/search/?term=Grand+Theft+Auto+VI',
+        externalId: 'search-gta6',
+      },
+    ],
+  },
+  {
     id: 'and-forest',
     title: 'Forest (Android)',
     subtitle: 'App a pagamento su Play Store. Alert quando va in promo o gratis.',
@@ -341,25 +368,138 @@ export const SEED_PRODUCTS = [
       },
     ],
   },
+  {
+    id: 'and-stardew',
+    title: 'Stardew Valley (Android)',
+    subtitle: 'Gioco su Google Play. Prezzo solo se lo store risponde.',
+    category: 'android',
+    tags: ['android', 'gioco', 'stardew', 'indie', 'farm'],
+    imageTone: '#3d5a2a',
+    listings: [
+      {
+        store: 'Google Play',
+        url: 'https://play.google.com/store/apps/details?id=com.chucklefish.stardewvalley',
+        externalId: 'com.chucklefish.stardewvalley',
+      },
+    ],
+  },
+  {
+    id: 'and-minecraft',
+    title: 'Minecraft (Android)',
+    subtitle: 'Gioco su Google Play. Prezzo solo se lo store risponde.',
+    category: 'android',
+    tags: ['android', 'gioco', 'minecraft', 'costruzione'],
+    imageTone: '#5a7d2a',
+    listings: [
+      {
+        store: 'Google Play',
+        url: 'https://play.google.com/store/apps/details?id=com.mojang.minecraftpe',
+        externalId: 'com.mojang.minecraftpe',
+      },
+    ],
+  },
+  {
+    id: 'and-dead-cells',
+    title: 'Dead Cells (Android)',
+    subtitle: 'Gioco d’azione su Google Play. Prezzo solo se lo store risponde.',
+    category: 'android',
+    tags: ['android', 'gioco', 'dead cells', 'azione'],
+    imageTone: '#6b1d1d',
+    listings: [
+      {
+        store: 'Google Play',
+        url: 'https://play.google.com/store/apps/details?id=com.playdigious.deadcells.mobile',
+        externalId: 'com.playdigious.deadcells.mobile',
+      },
+    ],
+  },
+  {
+    id: 'and-monument',
+    title: 'Monument Valley (Android)',
+    subtitle: 'Gioco puzzle su Google Play. Prezzo solo se lo store risponde.',
+    category: 'android',
+    tags: ['android', 'gioco', 'monument valley', 'puzzle'],
+    imageTone: '#c9a227',
+    listings: [
+      {
+        store: 'Google Play',
+        url: 'https://play.google.com/store/apps/details?id=com.ustwo.monumentvalley',
+        externalId: 'com.ustwo.monumentvalley',
+      },
+    ],
+  },
+  {
+    id: 'ios-stardew',
+    title: 'Stardew Valley (iOS)',
+    subtitle: 'Gioco sull’App Store. Prezzo live da iTunes quando risponde.',
+    category: 'ios',
+    tags: ['ios', 'gioco', 'stardew', 'indie', 'farm'],
+    imageTone: '#3d5a2a',
+    listings: [
+      {
+        store: 'App Store',
+        url: 'https://apps.apple.com/it/app/stardew-valley/id1406710800',
+        externalId: '1406710800',
+      },
+    ],
+  },
+  {
+    id: 'ios-minecraft',
+    title: 'Minecraft (iOS)',
+    subtitle: 'Gioco sull’App Store. Prezzo live da iTunes quando risponde.',
+    category: 'ios',
+    tags: ['ios', 'gioco', 'minecraft', 'costruzione'],
+    imageTone: '#5a7d2a',
+    listings: [
+      {
+        store: 'App Store',
+        url: 'https://apps.apple.com/it/app/minecraft/id479516143',
+        externalId: '479516143',
+      },
+    ],
+  },
+  {
+    id: 'ios-dead-cells',
+    title: 'Dead Cells (iOS)',
+    subtitle: 'Gioco d’azione sull’App Store. Prezzo live da iTunes quando risponde.',
+    category: 'ios',
+    tags: ['ios', 'gioco', 'dead cells', 'azione'],
+    imageTone: '#6b1d1d',
+    listings: [
+      {
+        store: 'App Store',
+        url: 'https://apps.apple.com/it/app/dead-cells/id1389752090',
+        externalId: '1389752090',
+      },
+    ],
+  },
+  {
+    id: 'ios-monument',
+    title: 'Monument Valley (iOS)',
+    subtitle: 'Gioco puzzle sull’App Store. Prezzo live da iTunes quando risponde.',
+    category: 'ios',
+    tags: ['ios', 'gioco', 'monument valley', 'puzzle'],
+    imageTone: '#c9a227',
+    listings: [
+      {
+        store: 'App Store',
+        url: 'https://apps.apple.com/it/app/monument-valley/id728293409',
+        externalId: '728293409',
+      },
+    ],
+  },
   ...PC_SEED_PRODUCTS,
 ]
 
 for (const p of SEED_PRODUCTS) {
   if (p.category !== 'steam') continue
-  const q = encodeURIComponent(p.title)
   const have = new Set(p.listings.map((l) => l.store))
-  if (!have.has('GOG')) {
+  for (const sf of gameStorefronts(p.title)) {
+    if (have.has(sf.store)) continue
     p.listings.push({
-      store: 'GOG',
-      url: `https://www.gog.com/en/games?query=${q}`,
-      externalId: `gog-${p.id}`,
-    })
-  }
-  if (!have.has('Instant Gaming')) {
-    p.listings.push({
-      store: 'Instant Gaming',
-      url: `https://www.instant-gaming.com/it/ricerca/?q=${q}`,
-      externalId: `ig-${p.id}`,
+      store: sf.store,
+      url: sf.url,
+      externalId: `${sf.store.toLowerCase().replace(/\s+/g, '-')}-${p.id}`,
     })
   }
 }

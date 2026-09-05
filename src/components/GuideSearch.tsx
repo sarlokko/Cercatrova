@@ -151,7 +151,7 @@ export function GuideSearch() {
           id="guide-free"
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
-          placeholder={leaf ? 'Es. 36 GB, DXP2800…' : 'Es. UGREEN 2800, Stardew, Forest…'}
+          placeholder={leaf ? 'Es. 36 GB, DXP2800, GTA VI…' : 'Es. UGREEN 2800, Stardew, GTA VI…'}
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}

@@ -52,7 +52,8 @@ const GROUPS: string[][] = [
   ['lifetime', 'licenza', 'perpetua'],
   ['ai', 'crediti', 'midjourney'],
   ['mac', 'macos', 'cleanmymac'],
-  ['gioco', 'giochi', 'game', 'games', 'steam', 'epic', 'gog', 'humble', 'videogioco'],
+  ['gioco', 'giochi', 'game', 'games', 'steam', 'epic', 'gog', 'humble', 'videogioco', 'playstation', 'xbox', 'prevendita', 'preordine', 'preorder'],
+  ['gta', 'gtavi'],
   ['android', 'play', 'playstore'],
   ['ios', 'iphone', 'ipad', 'appstore'],
   ['coupon', 'sconto', 'promo', 'offerta'],
@@ -72,6 +73,11 @@ function expand(query: string) {
   for (const t of raw) {
     const aliases = ALIAS.get(t)
     if (aliases) aliases.forEach((a) => out.add(a))
+  }
+  if (raw.includes('gta') || raw.includes('gtavi')) {
+    out.add('grand')
+    out.add('theft')
+    out.add('auto')
   }
   return { raw, expanded: [...out] }
 }
@@ -171,7 +177,10 @@ export const genericSuggestions = [
   { label: 'CPU Ryzen', query: 'ryzen 7800x3d', category: 'pc' as const },
   { label: 'GPU RTX', query: 'rtx 5070', category: 'pc' as const },
   { label: 'HDD NAS', query: 'hdd nas', category: 'nas' as const },
-  { label: 'Steam in sconto', query: 'steam sconto', category: 'steam' as const },
+  { label: 'Giochi in sconto', query: 'steam sconto', category: 'steam' as const },
+  { label: 'Prevendita GTA VI', query: 'gta vi', category: 'steam' as const },
+  { label: 'Giochi Android', query: 'android gioco', category: 'android' as const },
+  { label: 'Giochi iOS', query: 'ios gioco', category: 'ios' as const },
   { label: 'App Android', query: 'android a pagamento', category: 'android' as const },
   { label: 'App iOS', query: 'ios a pagamento', category: 'ios' as const },
   { label: 'Software gratis', query: 'software gratis', category: 'software' as const },

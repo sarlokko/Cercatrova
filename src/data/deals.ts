@@ -173,6 +173,30 @@ function hardwareStores(title: string): Merchant[] {
   ]
 }
 
+function gameStores(title: string): Merchant[] {
+  const q = encodeURIComponent(title.replace(/[—–]/g, ' ').replace(/\s+/g, ' ').trim())
+  return [
+    shop('Steam', `https://store.steampowered.com/search/?term=${q}`),
+    shop('GOG', `https://www.gog.com/en/games?query=${q}`),
+    shop('Epic Games', `https://store.epicgames.com/it/browse?q=${q}`),
+    shop('Instant Gaming', `https://www.instant-gaming.com/it/ricerca/?q=${q}`),
+    shop('PlayStation Store', `https://store.playstation.com/it-it/search/${q}`),
+    shop('Xbox', `https://www.microsoft.com/it-it/search/shop/games?q=${q}`),
+  ]
+}
+
+function withGameStores(deal: Deal): Deal {
+  const have = new Set(deal.merchants.map((m) => m.name))
+  return {
+    ...deal,
+    merchants: [...deal.merchants, ...gameStores(deal.title).filter((m) => !have.has(m.name))],
+  }
+}
+
+export function isPreorderDeal(deal: Pick<Deal, 'tags'>) {
+  return deal.tags.some((t) => /prevendita|preordine|preorder/i.test(t))
+}
+
 function pcParts(): Deal[] {
   return [
     pcPart({
@@ -926,6 +950,40 @@ export const deals: Deal[] = [
     ],
     tags: ['gioco', 'steam', 'puzzle', 'valve'],
   }),
+  item({
+    id: 'game-gta6',
+    title: 'Grand Theft Auto VI',
+    subtitle:
+      'Prevendita. Confronto Xbox, PlayStation Store e i negozi PC. Il prezzo solo se lo store risponde.',
+    category: 'steam',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#1a472a',
+    merchants: [
+      {
+        name: 'Xbox',
+        price: 0,
+        url: 'https://www.xbox.com/it-IT/games/store/grand-theft-auto-vi/9p3h4968grsm',
+        shipping: 'prevendita',
+      },
+      {
+        name: 'PlayStation Store',
+        price: 0,
+        url: 'https://store.playstation.com/it-it/search/Grand%20Theft%20Auto%20VI',
+        shipping: 'prevendita',
+      },
+      {
+        name: 'Steam',
+        price: 0,
+        url: 'https://store.steampowered.com/search/?term=Grand+Theft+Auto+VI',
+      },
+    ],
+    tags: ['gioco', 'gta', 'gta6', 'vi', 'prevendita', 'preordine', 'xbox', 'playstation'],
+  }),
 
   item({
     id: 'and-forest',
@@ -1116,7 +1174,175 @@ export const deals: Deal[] = [
     ],
     tags: ['ios', 'foto', 'editor'],
   }),
-]
+  item({
+    id: 'and-stardew',
+    title: 'Stardew Valley (Android)',
+    subtitle: 'Gioco su Google Play. Prezzo solo se lo store risponde.',
+    category: 'android',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#3d5a2a',
+    merchants: [
+      {
+        name: 'Google Play',
+        price: 0,
+        url: 'https://play.google.com/store/apps/details?id=com.chucklefish.stardewvalley',
+      },
+    ],
+    tags: ['android', 'gioco', 'stardew', 'indie', 'farm'],
+  }),
+  item({
+    id: 'and-minecraft',
+    title: 'Minecraft (Android)',
+    subtitle: 'Gioco su Google Play. Prezzo solo se lo store risponde.',
+    category: 'android',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#5a7d2a',
+    merchants: [
+      {
+        name: 'Google Play',
+        price: 0,
+        url: 'https://play.google.com/store/apps/details?id=com.mojang.minecraftpe',
+      },
+    ],
+    tags: ['android', 'gioco', 'minecraft', 'costruzione'],
+  }),
+  item({
+    id: 'and-dead-cells',
+    title: 'Dead Cells (Android)',
+    subtitle: 'Gioco d’azione su Google Play. Prezzo solo se lo store risponde.',
+    category: 'android',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#6b1d1d',
+    merchants: [
+      {
+        name: 'Google Play',
+        price: 0,
+        url: 'https://play.google.com/store/apps/details?id=com.playdigious.deadcells.mobile',
+      },
+    ],
+    tags: ['android', 'gioco', 'dead cells', 'azione'],
+  }),
+  item({
+    id: 'and-monument',
+    title: 'Monument Valley (Android)',
+    subtitle: 'Gioco puzzle su Google Play. Prezzo solo se lo store risponde.',
+    category: 'android',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#c9a227',
+    merchants: [
+      {
+        name: 'Google Play',
+        price: 0,
+        url: 'https://play.google.com/store/apps/details?id=com.ustwo.monumentvalley',
+      },
+    ],
+    tags: ['android', 'gioco', 'monument valley', 'puzzle'],
+  }),
+  item({
+    id: 'ios-stardew',
+    title: 'Stardew Valley (iOS)',
+    subtitle: 'Gioco sull’App Store. Prezzo live da iTunes quando risponde.',
+    category: 'ios',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#3d5a2a',
+    merchants: [
+      {
+        name: 'App Store',
+        price: 0,
+        url: 'https://apps.apple.com/it/app/stardew-valley/id1406710800',
+      },
+    ],
+    tags: ['ios', 'gioco', 'stardew', 'indie', 'farm'],
+  }),
+  item({
+    id: 'ios-minecraft',
+    title: 'Minecraft (iOS)',
+    subtitle: 'Gioco sull’App Store. Prezzo live da iTunes quando risponde.',
+    category: 'ios',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#5a7d2a',
+    merchants: [
+      {
+        name: 'App Store',
+        price: 0,
+        url: 'https://apps.apple.com/it/app/minecraft/id479516143',
+      },
+    ],
+    tags: ['ios', 'gioco', 'minecraft', 'costruzione'],
+  }),
+  item({
+    id: 'ios-dead-cells',
+    title: 'Dead Cells (iOS)',
+    subtitle: 'Gioco d’azione sull’App Store. Prezzo live da iTunes quando risponde.',
+    category: 'ios',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#6b1d1d',
+    merchants: [
+      {
+        name: 'App Store',
+        price: 0,
+        url: 'https://apps.apple.com/it/app/dead-cells/id1389752090',
+      },
+    ],
+    tags: ['ios', 'gioco', 'dead cells', 'azione'],
+  }),
+  item({
+    id: 'ios-monument',
+    title: 'Monument Valley (iOS)',
+    subtitle: 'Gioco puzzle sull’App Store. Prezzo live da iTunes quando risponde.',
+    category: 'ios',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+    imageTone: '#c9a227',
+    merchants: [
+      {
+        name: 'App Store',
+        price: 0,
+        url: 'https://apps.apple.com/it/app/monument-valley/id728293409',
+      },
+    ],
+    tags: ['ios', 'gioco', 'monument valley', 'puzzle'],
+  }),
+].map((d) => (d.category === 'steam' ? withGameStores(d) : d))
 
 export const kindLabel: Record<DealKind, string> = {
   gratis: 'Gratis',
@@ -1134,7 +1360,7 @@ export const categoryLabel: Record<Category, string> = {
   software: 'Software',
   nas: 'NAS / Storage',
   pc: 'Componenti PC',
-  steam: 'Steam / giochi',
+  steam: 'Giochi',
   android: 'Android',
   ios: 'iOS',
 }
@@ -1186,7 +1412,13 @@ export function guessCategory(query: string): Category {
   const t = query.toLowerCase()
   if (/\b(ios|iphone|ipad|app store|appstore)\b/.test(t)) return 'ios'
   if (/\b(android|play store|google play|playstore)\b/.test(t)) return 'android'
-  if (/\b(steam|epic|gog|gioco|giochi|game|games|humble|videogioco)\b/.test(t)) return 'steam'
+  if (
+    /\b(steam|epic|gog|gioco|giochi|game|games|humble|videogioco|playstation|xbox|ps5|ps4|prevendita|preordine|preorder|gta)\b/.test(
+      t,
+    )
+  ) {
+    return 'steam'
+  }
   if (/\b(office|windows|adobe|antivirus|licenza|saas|software|libreoffice)\b/.test(t)) {
     return 'software'
   }
@@ -1210,7 +1442,7 @@ export function guessCategory(query: string): Category {
 function lookupSubtitle(category: Category, title: string) {
   const q = title.trim()
   if (category === 'steam') {
-    return `Non è (ancora) nel radar. Apri Steam, Epic, GOG e imposta l’alert quando “${q}” va in sconto.`
+    return `Non è (ancora) nel radar. Apri Steam, PlayStation Store, Xbox e i key shop. Se è una prevendita, confronta dove conviene prenotare “${q}”.`
   }
   if (category === 'android') {
     return `Cerca su Google Play. Se è a pagamento, ti avvisiamo quando va in promo o diventa gratis.`
@@ -1239,6 +1471,8 @@ export function lookupMerchants(title: string, category: Category): Merchant[] {
         price: 0,
         url: `https://www.instant-gaming.com/it/ricerca/?q=${q}`,
       },
+      { name: 'PlayStation Store', price: 0, url: `https://store.playstation.com/it-it/search/${q}` },
+      { name: 'Xbox', price: 0, url: `https://www.microsoft.com/it-it/search/shop/games?q=${q}` },
     ]
   }
   if (category === 'android') {
@@ -1334,6 +1568,7 @@ export function priceDeltaLabel(deal: Deal) {
   if (deal.kind === 'monitora' && (deal.category === 'android' || deal.category === 'ios')) {
     return 'da a pagamento → gratis'
   }
+  if (isPreorderDeal(deal)) return 'confronta prevendite'
   if (deal.kind === 'monitora' && deal.category === 'steam') return 'sconta sulle sale'
   if (deal.discountPct > 0) return deal.isFree ? '100% risparmio' : `−${deal.discountPct}%`
   return 'prezzo di mercato'

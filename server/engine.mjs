@@ -12,7 +12,13 @@ import {
 import { amazonProduct, amazonSearch } from './collectors/amazon.mjs'
 import { officialPrice } from './collectors/official.mjs'
 import { steamAppPrice, steamSearch } from './collectors/steam.mjs'
-import { gogSearch, instantGamingSearch, isSearchUrl } from './collectors/stores.mjs'
+import { gameStorefronts, gogSearch, instantGamingSearch, isSearchUrl } from './collectors/stores.mjs'
+import {
+  extractXboxId,
+  itunesSearch,
+  xboxProduct,
+  xboxSearch,
+} from './collectors/console.mjs'
 import { pickBest } from './collectors/match.mjs'
 import { assembleProduct } from './product.mjs'
 
@@ -116,6 +122,73 @@ export async function refreshListing(listing) {
       return null
     }
 
+    if (store.includes('xbox')) {
+      const xboxId = listing.external_id && /^9[A-Z0-9]{11}$/i.test(listing.external_id)
+        ? listing.external_id
+        : extractXboxId(listing.url)
+      if (xboxId) {
+        const live = await xboxProduct(xboxId)
+        if (live?.price != null) {
+          upsertListing({
+            id: listing.id,
+            productId: listing.product_id,
+            store: listing.store,
+            url: live.url || listing.url,
+            externalId: live.externalId || xboxId,
+            lastPrice: live.price,
+            listPrice: live.list,
+            available: 1,
+            lastChecked: new Date().toISOString(),
+          })
+          recordPrice(listing.id, live.price, 1)
+          return live
+        }
+      }
+      const hit = pickBest(await xboxSearch(title), title)
+      if (hit?.price != null) {
+        upsertListing({
+          id: listing.id,
+          productId: listing.product_id,
+          store: listing.store,
+          url: hit.url || listing.url,
+          externalId: hit.externalId || listing.external_id,
+          lastPrice: hit.price,
+          listPrice: hit.list,
+          available: 1,
+          lastChecked: new Date().toISOString(),
+        })
+        recordPrice(listing.id, hit.price, 1)
+        return hit
+      }
+      markChecked(listing.id)
+      return null
+    }
+
+    if (store.includes('app store')) {
+      const hit = pickBest(await itunesSearch(title), title)
+      if (hit?.price != null) {
+        upsertListing({
+          id: listing.id,
+          productId: listing.product_id,
+          store: listing.store,
+          url: hit.url || listing.url,
+          externalId: hit.externalId || listing.external_id,
+          lastPrice: hit.price,
+          available: 1,
+          lastChecked: new Date().toISOString(),
+        })
+        recordPrice(listing.id, hit.price, 1)
+        return hit
+      }
+      markChecked(listing.id)
+      return null
+    }
+
+    if (store.includes('playstation')) {
+      markChecked(listing.id)
+      return null
+    }
+
     if (!isSearchUrl(listing.url) && listing.url) {
       const live = await officialPrice(listing.url)
       if (live?.price != null) {
@@ -183,12 +256,53 @@ export async function refreshCatalog(limit = 12) {
   console.log('catalog refresh done', rows.length)
 }
 
+function findGameProductId(title) {
+  const q = String(title || '').toLowerCase()
+  if (!q) return null
+  const rows = listCatalog('steam')
+  const exact = rows.find((r) => String(r.title).toLowerCase() === q)
+  if (exact) return exact.id
+  const loose = rows.find((r) => {
+    const t = String(r.title).toLowerCase()
+    return t.includes(q) || q.includes(t)
+  })
+  return loose?.id ?? null
+}
+
+function ensureGameStorefronts(productId, title) {
+  const have = new Set(listingsFor(productId).map((l) => l.store))
+  for (const sf of gameStorefronts(title)) {
+    if (have.has(sf.store)) continue
+    upsertListing({
+      id: listingId(productId, sf.store),
+      productId,
+      store: sf.store,
+      url: sf.url,
+    })
+  }
+}
+
+function slugId(title) {
+  return String(title)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40)
+}
+
 export async function liveSearchExtras(query, category) {
   const q = query.trim()
   if (q.length < 2) return []
-  const steamish =
+  const wantGames =
     category === 'steam' ||
-    /\b(steam|gioco|giochi|game|hades|stardew|balatro|witcher|portal)\b/i.test(q)
+    (category === 'all' &&
+      /\b(steam|epic|gog|gioco|giochi|game|games|xbox|playstation|ps5|ps4|prevendita|preordine|preorder|gta|hades|stardew|balatro|witcher|portal)\b/i.test(
+        q,
+      ))
+  const wantIos =
+    category === 'ios' || (category === 'all' && /\b(ios|iphone|ipad|app store)\b/i.test(q))
   const amazonish =
     category === 'nas' ||
     category === 'pc' ||
@@ -198,7 +312,9 @@ export async function liveSearchExtras(query, category) {
 
   const found = []
 
-  if (steamish || category === 'all') {
+  if (wantGames) {
+    await Promise.all([
+    (async () => {
     try {
       const gogHits = await gogSearch(q)
       for (const hit of gogHits.slice(0, 3)) {
@@ -225,15 +341,25 @@ export async function liveSearchExtras(query, category) {
           lastChecked: new Date().toISOString(),
         })
         recordPrice(lid, hit.price, 1)
+        ensureGameStorefronts(id, hit.title)
         const dto = assembleProduct(id)
         if (dto) found.push(dto)
       }
     } catch {
       /* GOG down */
     }
+    })(),
+    (async () => {
     try {
       const hits = await steamSearch(q)
-      const qTokens = q.toLowerCase().split(/\s+/).filter((t) => t.length > 2)
+      const qTokens = q
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(
+          (t) =>
+            t.length > 1 &&
+            !/^(prevendita|preordine|preorder|playstation|xbox|steam|epic|gog)$/.test(t),
+        )
       for (const hit of hits) {
         if (hit.price == null && hit.price !== 0) continue
         const title = String(hit.title || '').toLowerCase()
@@ -261,15 +387,115 @@ export async function liveSearchExtras(query, category) {
           lastChecked: new Date().toISOString(),
         })
         if (hit.price != null) recordPrice(lid, hit.price, 1)
+        ensureGameStorefronts(id, hit.title)
         const dto = assembleProduct(id)
         if (dto) found.push(dto)
       }
     } catch {
       /* Steam down: ignora */
     }
+    })(),
+    (async () => {
+    try {
+      const xboxHits = await xboxSearch(q)
+      for (const hit of xboxHits.slice(0, 3)) {
+        const id =
+          (hit.externalId && productIdByExternal('Xbox', hit.externalId)) ||
+          findGameProductId(hit.title) ||
+          `xbox-${hit.externalId || slugId(hit.title)}`
+        if (!getProductRow(id)) {
+          upsertProduct({
+            id,
+            title: hit.title,
+            subtitle: hit.preorder
+              ? 'Prevendita. Confronto Xbox, PlayStation Store e i negozi PC.'
+              : 'Prezzo dal Microsoft Store / Xbox (live).',
+            category: 'steam',
+            tags: [
+              'xbox',
+              'gioco',
+              ...(hit.preorder ? ['prevendita'] : []),
+              ...q.toLowerCase().split(/\s+/),
+            ],
+            imageTone: '#107c10',
+            source: 'xbox',
+          })
+        }
+        const lid = listingId(id, 'Xbox')
+        upsertListing({
+          id: lid,
+          productId: id,
+          store: 'Xbox',
+          url: hit.url,
+          externalId: hit.externalId,
+          lastPrice: hit.price,
+          listPrice: hit.list,
+          available: 1,
+          lastChecked: new Date().toISOString(),
+        })
+        if (hit.price != null) recordPrice(lid, hit.price, 1)
+        ensureGameStorefronts(id, hit.title)
+        const dto = assembleProduct(id)
+        if (dto) {
+          const idx = found.findIndex((d) => d.id === id)
+          if (idx >= 0) found[idx] = dto
+          else found.push(dto)
+        }
+      }
+    } catch {
+      /* Xbox down */
+    }
+    })(),
+    ])
   }
 
-  if ((amazonish && !steamish) || category === 'nas' || category === 'pc') {
+  if (wantIos) {
+    try {
+      let hits = await itunesSearch(q, { gamesOnly: true })
+      if (!hits.length) hits = await itunesSearch(q, { gamesOnly: false })
+      for (const hit of hits.slice(0, 4)) {
+        const id =
+          productIdByExternal('App Store', hit.externalId) ||
+          `ios-${hit.externalId || slugId(hit.title)}`
+        if (!getProductRow(id)) {
+          upsertProduct({
+            id,
+            title: hit.title,
+            subtitle:
+              hit.genre === 'Games'
+                ? 'Gioco sull’App Store. Prezzo live da iTunes.'
+                : 'Prezzo live dall’App Store.',
+            category: 'ios',
+            tags: ['ios', ...(hit.genre === 'Games' ? ['gioco'] : []), ...q.toLowerCase().split(/\s+/)],
+            imageTone: '#0a84ff',
+            source: 'itunes',
+          })
+        }
+        const lid = listingId(id, 'App Store')
+        upsertListing({
+          id: lid,
+          productId: id,
+          store: 'App Store',
+          url: hit.url,
+          externalId: hit.externalId,
+          lastPrice: hit.price,
+          available: 1,
+          lastChecked: new Date().toISOString(),
+        })
+        recordPrice(lid, hit.price, 1)
+        const dto = assembleProduct(id)
+        if (dto) {
+          const idx = found.findIndex((d) => d.id === id)
+          if (idx >= 0) found[idx] = dto
+          else found.push(dto)
+        }
+      }
+    } catch {
+      /* iTunes down */
+    }
+  }
+
+  if ((amazonish && !wantGames) || category === 'nas' || category === 'pc') {
     const key = `amz:${q.toLowerCase()}`
     if (!recently(key, 10 * 60 * 1000)) {
       try {

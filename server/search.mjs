@@ -1,7 +1,7 @@
 import { assembleProduct } from './product.mjs'
 import { listCatalog, listingId, upsertListing, upsertProduct } from './db.mjs'
 import { liveSearchExtras, refreshProduct } from './engine.mjs'
-import { hardwareStorefronts } from './collectors/stores.mjs'
+import { gameStorefronts, hardwareStorefronts } from './collectors/stores.mjs'
 
 const STOP = new Set(['per', 'del', 'della', 'dei', 'delle', 'con', 'una', 'uno', 'the', 'and'])
 
@@ -18,7 +18,8 @@ const GROUPS = [
   ['nas', 'synology', 'qnap', 'terramaster', 'ugreen', 'ugos', 'nasync', 'storage', 'bay', 'ds224'],
   ['ugreen', 'ugos', 'nasync', 'dxp', 'dxp2800', '2800', 'dxp4800', '4800'],
   ['gratis', 'free', 'zero'],
-  ['gioco', 'giochi', 'game', 'games', 'steam', 'epic', 'gog'],
+  ['gioco', 'giochi', 'game', 'games', 'steam', 'epic', 'gog', 'playstation', 'xbox', 'prevendita', 'preordine', 'preorder'],
+  ['gta', 'gtavi'],
   ['android', 'play', 'playstore'],
   ['ios', 'iphone', 'ipad', 'appstore'],
 ]
@@ -49,6 +50,11 @@ function expand(query) {
   const raw = tokens(query)
   const out = new Set(raw)
   for (const t of raw) (ALIAS.get(t) || []).forEach((a) => out.add(a))
+  if (raw.includes('gta') || raw.includes('gtavi')) {
+    out.add('grand')
+    out.add('theft')
+    out.add('auto')
+  }
   return { raw, expanded: [...out] }
 }
 
@@ -86,7 +92,13 @@ export function guessCategory(query) {
   const t = query.toLowerCase()
   if (/\b(ios|iphone|ipad|app store)\b/.test(t)) return 'ios'
   if (/\b(android|play store)\b/.test(t)) return 'android'
-  if (/\b(steam|epic|gog|gioco|giochi|game|games)\b/.test(t)) return 'steam'
+  if (
+    /\b(steam|epic|gog|gioco|giochi|game|games|humble|videogioco|playstation|xbox|ps5|ps4|prevendita|preordine|preorder|gta)\b/.test(
+      t,
+    )
+  ) {
+    return 'steam'
+  }
   if (/\b(office|windows|adobe|software)\b/.test(t)) return 'software'
   if (
     /\b(cpu|gpu|ryzen|radeon|rtx|geforce|case|cabinet|mobo|motherboard|madre|psu|ddr5|ddr4|cooler|dissipatore|am5|b650|z790|z890|alimentatore|processore|componenti)\b/.test(
@@ -125,11 +137,7 @@ function makeLookup(query, category) {
   })
   const stores =
     category === 'steam'
-      ? [
-          ['Steam', `https://store.steampowered.com/search/?term=${encodeURIComponent(title)}`],
-          ['Epic Games', `https://store.epicgames.com/it/browse?q=${encodeURIComponent(title)}`],
-          ['GOG', `https://www.gog.com/en/games?query=${encodeURIComponent(title)}`],
-        ]
+      ? gameStorefronts(title).map((s) => [s.store, s.url])
       : category === 'android'
         ? [['Google Play', `https://play.google.com/store/search?q=${encodeURIComponent(title)}&c=apps`]]
         : category === 'ios'
