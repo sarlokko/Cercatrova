@@ -9,7 +9,7 @@
     "start": "node server/index.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node --test server/verdict.test.mjs server/collectors/amazon.test.mjs",
+    "test": "node --test server/verdict.test.mjs server/collectors/amazon.test.mjs src/lib/timing.test.mjs",
     "preview": "vite preview",
     "pack:nas": "npm run build && cd dist && zip -r ../il-cerca-trova-nas.zip ."
   },

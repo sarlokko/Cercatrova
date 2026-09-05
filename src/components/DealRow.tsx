@@ -19,12 +19,15 @@ function thumbLabel(title: string) {
 
 type Props = {
   deal: Deal
-  compact?: boolean
+  tone?: 'now' | 'wait'
 }
 
-export function DealRow({ deal }: Props) {
+export function DealRow({ deal, tone }: Props) {
   return (
-    <Link to={`/prodotto/${deal.id}`} className="deal-row">
+    <Link
+      to={`/prodotto/${deal.id}`}
+      className={`deal-row${tone === 'wait' ? ' deal-row--wait' : ''}${tone === 'now' ? ' deal-row--now' : ''}`}
+    >
       <div className="deal-thumb" style={{ background: deal.imageTone }}>
         {thumbLabel(deal.title)}
       </div>

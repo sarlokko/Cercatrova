@@ -29,7 +29,10 @@ export function HomePage() {
           <article className="step">
             <div className="step__n">02</div>
             <h3>Trova</h3>
-            <p>Steam, Amazon, sito ufficiale. Se il prezzo non si legge, non lo inventiamo.</p>
+            <p>
+              Se conviene adesso, te lo mostro. Se no, vedi i prodotti lo stesso — e ti avviso
+              quando sarà il momento.
+            </p>
           </article>
           <article className="step">
             <div className="step__n">03</div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { DealRow } from './DealRow'
+import { GuideNotify } from './GuideNotify'
 import { type Deal } from '../data/deals'
 import { apiSearch } from '../lib/api'
 import {
@@ -9,6 +10,7 @@ import {
   walkStep,
   type GuideChoice,
 } from '../lib/guide'
+import { splitByTiming, suggestedWatchTarget } from '../lib/timing'
 
 export function GuideSearch() {
   const [path, setPath] = useState<GuideChoice[]>([])
@@ -71,11 +73,27 @@ export function GuideSearch() {
     setSearched(false)
   }
 
-  const closer = leaf
-    ? `Ottimo. Ti trovo la più adatta per ${path.map((c) => c.label).join(' · ').toLowerCase()}.`
-    : searched && typed.trim()
-      ? `Cerco “${typed.trim()}”.`
-      : step.aside
+  const { now, wait } = useMemo(() => splitByTiming(results), [results])
+  const watchTitle =
+    path.length > 0
+      ? path.map((c) => c.label).join(' · ')
+      : typed.trim() || 'Ricerca guidata'
+  const watchTarget = suggestedWatchTarget(wait.length ? wait : now)
+  const watchProduct = (wait[0] ?? now[0])?.id
+
+  const closer = !searched
+    ? leaf
+      ? `Ottimo. Ti trovo la più adatta per ${path.map((c) => c.label).join(' · ').toLowerCase()}.`
+      : typed.trim()
+        ? `Cerco “${typed.trim()}”.`
+        : step.aside
+    : loading
+      ? 'Guardo nei negozi…'
+      : now.length > 0
+        ? 'Sì: adesso vale la pena. Queste sono nel momento giusto.'
+        : wait.length > 0
+          ? 'Ci sono, però non conviene comprarli adesso.'
+          : step.aside
 
   return (
     <section className="guide" aria-label="Guida alla ricerca">
@@ -142,21 +160,78 @@ export function GuideSearch() {
 
       {searched ? (
         <div className="guide__results" id="risultati">
-          <div className="guide__found">
-            <span className="guide__stamp">Trovato</span>
-            <p>
-              {loading
-                ? 'Guardo nei negozi…'
-                : results.length === 0
-                  ? 'Niente di pulito con queste scelte. Prova un’altra via o scrivi il modello.'
-                  : `${results.length} scelt${results.length === 1 ? 'a' : 'e'} per te. Apri e guarda se è il momento di comprare.`}
-            </p>
-          </div>
-          <div className="deal-list">
-            {results.map((deal) => (
-              <DealRow key={deal.id} deal={deal} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="guide__found">
+              <span className="guide__stamp">Cerco</span>
+              <p>Guardo nei negozi se adesso conviene…</p>
+            </div>
+          ) : results.length === 0 ? (
+            <div className="guide__found">
+              <span className="guide__stamp">Vuoto</span>
+              <p>Niente di pulito con queste scelte. Prova un’altra via o scrivi il modello.</p>
+            </div>
+          ) : now.length > 0 ? (
+            <>
+              <div className="guide__found">
+                <span className="guide__stamp">Conviene</span>
+                <p>
+                  {now.length === 1
+                    ? 'Questa vale la pena adesso. Aprila e compra, se ti torna.'
+                    : `${now.length} scelte che vale la pena fare adesso.`}
+                </p>
+              </div>
+              <div className="deal-list">
+                {now.map((deal) => (
+                  <DealRow key={deal.id} deal={deal} tone="now" />
+                ))}
+              </div>
+              {wait.length > 0 ? (
+                <div className="guide-split">
+                  <div className="guide__found">
+                    <span className="guide__stamp guide__stamp--wait">Aspetta</span>
+                    <p>
+                      Ci sono anche questi, però non conviene comprarli adesso. Se vuoi, ti avviso
+                      quando sarà il momento.
+                    </p>
+                  </div>
+                  <div className="deal-list">
+                    {wait.map((deal) => (
+                      <DealRow key={deal.id} deal={deal} tone="wait" />
+                    ))}
+                  </div>
+                  <GuideNotify
+                    title={watchTitle}
+                    query={query}
+                    category={category}
+                    productId={wait[0]?.id}
+                    targetPrice={suggestedWatchTarget(wait)}
+                  />
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <div className="guide__found">
+                <span className="guide__stamp guide__stamp--wait">Aspetta</span>
+                <p>
+                  Ci sono questi, però non conviene comprarli adesso. Se vuoi, attiva una notifica:
+                  ti avviso quando sarà il momento.
+                </p>
+              </div>
+              <div className="deal-list">
+                {wait.map((deal) => (
+                  <DealRow key={deal.id} deal={deal} tone="wait" />
+                ))}
+              </div>
+              <GuideNotify
+                title={watchTitle}
+                query={query}
+                category={category}
+                productId={watchProduct}
+                targetPrice={watchTarget}
+              />
+            </>
+          )}
         </div>
       ) : null}
     </section>

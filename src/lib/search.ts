@@ -6,6 +6,7 @@ import {
   guessCategory,
   makeLookupDeal,
 } from '../data/deals'
+import { withVerdict } from './timing'
 
 export type SearchMode = 'generico' | 'specifico'
 
@@ -146,13 +147,13 @@ export function searchDeals(filters: SearchFilters, source: Deal[] = deals): Dea
     })
     .map((x) => x.d)
 
-  if (ranked.length > 0) return ranked
+  if (ranked.length > 0) return ranked.map(withVerdict)
   if (scored.length > 0) return []
 
   const q = filters.query.trim()
   if (q.length >= 2 && !filters.onlyFree) {
     const category = filters.category === 'all' ? guessCategory(q) : filters.category
-    return [makeLookupDeal(q, category)]
+    return [withVerdict(makeLookupDeal(q, category))]
   }
 
   return []

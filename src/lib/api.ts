@@ -1,4 +1,5 @@
 import { type Category, type Deal, getDeal, searchDeals, type SearchFilters } from './search-bridge'
+import { withVerdict } from './timing'
 
 export type Me = {
   deviceId: string
@@ -57,7 +58,7 @@ export async function apiSearch(filters: SearchFilters): Promise<Deal[]> {
     const data = await req<{ results: Deal[] }>(
       `/api/search?q=${encodeURIComponent(filters.query)}&category=${filters.category}&mode=${filters.mode}&onlyFree=${filters.onlyFree ? 1 : 0}${max}`,
     )
-    return data.results
+    return data.results.map(withVerdict)
   } catch {
     return searchDeals(filters)
   }
@@ -66,9 +67,10 @@ export async function apiSearch(filters: SearchFilters): Promise<Deal[]> {
 export async function apiProduct(id: string): Promise<Deal | undefined> {
   try {
     const data = await req<{ product: Deal }>(`/api/products/${encodeURIComponent(id)}`)
-    return data.product
+    return data.product ? withVerdict(data.product) : undefined
   } catch {
-    return getDeal(id)
+    const local = getDeal(id)
+    return local ? withVerdict(local) : undefined
   }
 }
 
@@ -77,9 +79,10 @@ export async function apiRefresh(id: string): Promise<Deal | undefined> {
     const data = await req<{ product: Deal }>(`/api/products/${encodeURIComponent(id)}/refresh`, {
       method: 'POST',
     })
-    return data.product
+    return data.product ? withVerdict(data.product) : undefined
   } catch {
-    return getDeal(id)
+    const local = getDeal(id)
+    return local ? withVerdict(local) : undefined
   }
 }
 
