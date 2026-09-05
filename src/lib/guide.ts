@@ -124,54 +124,98 @@ export const GUIDE_ROOT: GuideStep = {
     },
     {
       id: 'game',
-      label: 'Un gioco PC',
-      hint: 'Steam, Epic, GOG',
-      query: 'steam',
+      label: 'Un gioco',
+      hint: 'PC, PlayStation, Xbox, prevendite',
       category: 'steam',
       next: {
-        id: 'game-kind',
-        question: 'Che genere ti va?',
-        aside: 'Cerco il listino Steam e ti dico se conviene aspettare la sale.',
+        id: 'game-where',
+        question: 'Dove lo vuoi?',
+        aside: 'Confronto Steam, PlayStation Store, Xbox e i key shop. Anche le prevendite.',
+        freeLabel: 'Ho già il titolo',
         choices: [
-          { id: 'indie', label: 'Indie / avventura', query: 'indie' },
-          { id: 'rpg', label: 'RPG', query: 'rpg' },
-          { id: 'action', label: 'Azione', query: 'action' },
-          { id: 'specific', label: 'Ho già il titolo', hint: 'lo scrivo sotto', query: '' },
+          {
+            id: 'game-pc',
+            label: 'PC',
+            hint: 'Steam, Epic, GOG',
+            next: gameKindStep(
+              'Cerco Steam, Epic e GOG. PlayStation Store e Xbox restano nel confronto.',
+            ),
+          },
+          {
+            id: 'game-ps',
+            label: 'PlayStation',
+            hint: 'PS Store',
+            next: gameKindStep(
+              'PlayStation Store e i key shop. Se è prevendita, confronto anche Xbox.',
+            ),
+          },
+          {
+            id: 'game-xbox',
+            label: 'Xbox',
+            hint: 'Microsoft Store',
+            next: gameKindStep(
+              'Xbox e Microsoft Store. Se è prevendita, confronto anche PlayStation.',
+            ),
+          },
+          {
+            id: 'game-all',
+            label: 'Confronta tutti',
+            hint: 'PC + console',
+            next: gameKindStep('Guardo tutti i negozi, prevendite comprese.'),
+          },
+          {
+            id: 'game-pre',
+            label: 'È una prevendita',
+            hint: 'trova il posto migliore',
+            next: {
+              id: 'game-pre-title',
+              question: 'Quale titolo?',
+              aside:
+                'Confronto Xbox, PlayStation Store e i negozi PC. Il prezzo solo se lo store risponde.',
+              freeLabel: 'Un altro titolo',
+              choices: [
+                { id: 'gta6', label: 'GTA VI', query: 'gta vi' },
+                { id: 'pre-bo', label: 'Ho il titolo', query: '' },
+              ],
+            },
+          },
         ],
       },
     },
     {
       id: 'and',
-      label: 'Un’app Android',
-      hint: 'Play Store, anche a pagamento',
+      label: 'Un’app o un gioco Android',
+      hint: 'Play Store, anche i giochi',
       query: 'android',
       category: 'android',
       next: {
         id: 'and-kind',
         question: 'A cosa ti serve?',
-        aside: 'Android e iOS sono store separati.',
+        aside: 'Android e iOS sono store separati. I giochi stanno nel Play Store.',
         choices: [
           { id: 'a-focus', label: 'Focus / produttività', query: 'focus' },
           { id: 'a-file', label: 'File e automazione', query: 'file manager' },
           { id: 'a-music', label: 'Musica', query: 'player' },
+          { id: 'a-game', label: 'Un gioco', hint: 'Play Store', next: mobileGameStep('android') },
           { id: 'a-any', label: 'Ho già il nome', query: '' },
         ],
       },
     },
     {
       id: 'ios',
-      label: 'Un’app iPhone / iPad',
-      hint: 'App Store, distinto da Android',
+      label: 'Un’app o un gioco iPhone / iPad',
+      hint: 'App Store, anche i giochi',
       query: 'ios',
       category: 'ios',
       next: {
         id: 'ios-kind',
         question: 'A cosa ti serve?',
-        aside: 'Le promo “da a pagamento a gratis” arrivano a ondate.',
+        aside: 'Le promo “da a pagamento a gratis” arrivano a ondate. I giochi stanno sull’App Store.',
         choices: [
           { id: 'i-draw', label: 'Disegno', query: 'procreate' },
           { id: 'i-todo', label: 'Liste / GTD', query: 'things' },
           { id: 'i-focus', label: 'Focus', query: 'forest' },
+          { id: 'i-game', label: 'Un gioco', hint: 'App Store', next: mobileGameStep('ios') },
           { id: 'i-any', label: 'Ho già il nome', query: '' },
         ],
       },
@@ -194,6 +238,39 @@ export const GUIDE_ROOT: GuideStep = {
       },
     },
   ],
+}
+
+function gameKindStep(aside: string): GuideStep {
+  return {
+    id: 'game-kind',
+    question: 'Che genere ti va?',
+    aside,
+    freeLabel: 'Ho già il titolo',
+    choices: [
+      { id: 'indie', label: 'Indie / avventura', query: 'indie' },
+      { id: 'rpg', label: 'RPG', query: 'rpg' },
+      { id: 'action', label: 'Azione', query: 'action' },
+      { id: 'specific', label: 'Ho già il titolo', hint: 'lo scrivo sotto', query: '' },
+    ],
+  }
+}
+
+function mobileGameStep(store: 'android' | 'ios'): GuideStep {
+  return {
+    id: `${store}-game`,
+    question: 'Che tipo di gioco?',
+    aside:
+      store === 'android'
+        ? 'Guardo il Play Store. Niente prezzo inventato.'
+        : 'Guardo l’App Store, distinto da Android.',
+    freeLabel: 'Ho già il titolo',
+    choices: [
+      { id: `${store}-g-indie`, label: 'Indie / avventura', query: 'stardew' },
+      { id: `${store}-g-action`, label: 'Azione', query: 'dead cells' },
+      { id: `${store}-g-build`, label: 'Costruzione', query: 'minecraft' },
+      { id: `${store}-g-title`, label: 'Ho il titolo', query: '' },
+    ],
+  }
 }
 
 function pcPartsStep(): GuideStep {

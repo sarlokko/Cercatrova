@@ -15,4 +15,10 @@ describe('guessCategory', () => {
     assert.equal(guessCategory('ugreen nasync dxp2800'), 'nas')
     assert.equal(guessCategory('wd red plus 12tb nas'), 'nas')
   })
+
+  it('mette PlayStation, Xbox e le prevendite tra i giochi', () => {
+    assert.equal(guessCategory('gta vi prevendita'), 'steam')
+    assert.equal(guessCategory('playstation store'), 'steam')
+    assert.equal(guessCategory('xbox series'), 'steam')
+  })
 })

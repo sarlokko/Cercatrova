@@ -9,6 +9,7 @@ import {
   formatDealPrice,
   formatMerchantPrice,
   formatPrice,
+  isPreorderDeal,
   kindLabel,
 } from '../data/deals'
 import { apiAddWatch, apiMe, apiProduct, apiRefresh, apiTelegramLink } from '../lib/api'
@@ -217,7 +218,7 @@ export function ProductPage() {
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  Compra
+                  {isPreorderDeal(deal) && /xbox|playstation/i.test(m.name) ? 'Preordina' : 'Compra'}
                 </a>
               </div>
             ))}

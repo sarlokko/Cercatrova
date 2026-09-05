@@ -168,7 +168,7 @@ export function MonitorPage() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder={
             mode === 'generico'
-              ? 'Es. nas 2 bay, giochi steam, app android…'
+              ? 'Es. nas 2 bay, gta vi, giochi android…'
               : 'Es. UGREEN DXP2800, Stardew Valley…'
           }
           autoComplete="off"
@@ -206,7 +206,7 @@ export function MonitorPage() {
               <option value="nas">NAS / Storage</option>
               <option value="pc">Componenti PC</option>
               <option value="software">Software</option>
-              <option value="steam">Steam / Epic / GOG</option>
+              <option value="steam">Giochi (Steam / PS / Xbox)</option>
               <option value="android">Android (Play Store)</option>
               <option value="ios">iOS (App Store)</option>
             </select>

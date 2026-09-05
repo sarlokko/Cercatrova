@@ -21,6 +21,8 @@ export function gameStorefronts(title) {
     { store: 'GOG', url: `https://www.gog.com/en/games?query=${q}` },
     { store: 'Epic Games', url: `https://store.epicgames.com/it/browse?q=${q}` },
     { store: 'Instant Gaming', url: `https://www.instant-gaming.com/it/ricerca/?q=${q}` },
+    { store: 'PlayStation Store', url: `https://store.playstation.com/it-it/search/${q}` },
+    { store: 'Xbox', url: `https://www.microsoft.com/it-it/search/shop/games?q=${q}` },
   ]
 }
 

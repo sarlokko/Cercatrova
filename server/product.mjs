@@ -36,15 +36,22 @@ export function assembleProduct(id) {
     sampleCount: samples,
   })
 
+  const tags = safeJson(row.tags)
+  const preorder = tags.some((t) => /prevendita|preordine|preorder/i.test(String(t)))
   const merchants = listings.map((l) => ({
     name: l.store,
     price: l.last_price == null ? 0 : Number(l.last_price),
     url: l.url,
-    shipping: l.last_checked
-      ? l.available === 0
-        ? 'non disponibile al buybox'
-        : `rilevato ${l.last_checked.slice(0, 16).replace('T', ' ')}`
-      : 'non ancora interrogato',
+    shipping: [
+      preorder && /xbox|playstation|instant/i.test(l.store) ? 'prevendita' : null,
+      l.last_checked
+        ? l.available === 0
+          ? 'non disponibile al buybox'
+          : `rilevato ${l.last_checked.slice(0, 16).replace('T', ' ')}`
+        : 'non ancora interrogato',
+    ]
+      .filter(Boolean)
+      .join(' · '),
   }))
 
   const history = dailyMins(historyRows)
@@ -70,7 +77,7 @@ export function assembleProduct(id) {
     imageTone: row.image_tone,
     merchants,
     history,
-    tags: safeJson(row.tags),
+    tags,
     checkedAt: checked,
     verdict,
     live: listings.some((l) => l.last_checked),

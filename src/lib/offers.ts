@@ -19,6 +19,8 @@ export function merchantOfferUrl(merchant: Merchant, deal: Deal) {
   if (name.includes('morele')) return `https://www.morele.net/wyszukiwarka/0/0/,,,,,,/1/?q=${query}`
   if (name.includes('synology')) return `https://www.synology.com/it-it/search?search=${query}`
   if (name.includes('steam')) return `https://store.steampowered.com/search/?term=${query}`
+  if (name.includes('playstation')) return `https://store.playstation.com/it-it/search/${query}`
+  if (name.includes('xbox')) return `https://www.microsoft.com/it-it/search/shop/games?q=${query}`
   if (name.includes('epic')) return `https://store.epicgames.com/it/browse?q=${query}`
   if (name.includes('gog')) return `https://www.gog.com/en/games?query=${query}`
   if (name.includes('instant')) return `https://www.instant-gaming.com/it/ricerca/?q=${query}`

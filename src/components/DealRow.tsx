@@ -4,6 +4,7 @@ import {
   categoryLabel,
   formatDealPrice,
   formatPrice,
+  isPreorderDeal,
   kindLabel,
   priceDeltaLabel,
 } from '../data/deals'
@@ -54,6 +55,7 @@ export function DealRow({ deal, tone }: Props) {
             {deal.verdict?.label ?? kindLabel[deal.kind]}
           </span>
           <span className="tag">{categoryLabel[deal.category]}</span>
+          {isPreorderDeal(deal) ? <span className="tag">Prevendita</span> : null}
           {deal.expiresAt ? <span className="tag">Scade {deal.expiresAt}</span> : null}
         </div>
       </div>
