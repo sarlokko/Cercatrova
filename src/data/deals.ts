@@ -142,8 +142,10 @@ function pcPart(
     tags: string[]
   },
 ): Deal {
+  const have = new Set(draft.merchants.map((m) => m.name))
   return item({
     ...draft,
+    merchants: [...draft.merchants, ...hardwareStores(draft.title).filter((m) => !have.has(m.name))],
     category: 'pc',
     kind: 'monitora',
     currentPrice: 0,
@@ -156,6 +158,19 @@ function pcPart(
 
 function shop(name: string, url: string): Merchant {
   return { name, price: 0, url }
+}
+
+function hardwareStores(title: string): Merchant[] {
+  const q = encodeURIComponent(title)
+  return [
+    shop('Amazon', `https://www.amazon.it/s?k=${q}`),
+    shop('PcComponentes', `https://www.pccomponentes.it/buscar/?query=${q}`),
+    shop('LDLC', `https://www.ldlc.com/it-it/recherche/?q=${q}`),
+    shop('Alternate', `https://www.alternate.it/listing.xhtml?q=${q}`),
+    shop('MediaWorld', `https://www.mediaworld.it/search?q=${q}`),
+    shop('Unieuro', `https://www.unieuro.it/online/search?query=${q}`),
+    shop('eBay', `https://www.ebay.it/sch/i.html?_nkw=${q}`),
+  ]
 }
 
 function pcParts(): Deal[] {
@@ -1207,7 +1222,7 @@ function lookupSubtitle(category: Category, title: string) {
     return `Prodotto non in catalogo: apri i negozi e monitora il listino. Niente prezzo inventato.`
   }
   if (category === 'pc') {
-    return `Componente non (ancora) in catalogo. Apri Amazon/PcComponentes e monitora “${q}”: niente prezzo inventato.`
+    return `Componente non (ancora) in catalogo. Apri Amazon, LDLC, Alternate, MediaWorld… e monitora “${q}”.`
   }
   return `Anche se non è in offerta, lo cerchiamo nei negozi. Apri Amazon/sito e attiva l’alert sul tuo prezzo.`
 }
@@ -1245,12 +1260,15 @@ export function lookupMerchants(title: string, category: Category): Merchant[] {
       { name: 'Google', price: 0, url: `https://www.google.com/search?q=${q}+software+ufficiale` },
     ]
   }
-  if (category === 'pc') {
+  if (category === 'pc' || category === 'nas') {
     return [
       { name: 'Amazon', price: 0, url: `https://www.amazon.it/s?k=${q}` },
       { name: 'PcComponentes', price: 0, url: `https://www.pccomponentes.it/buscar/?query=${q}` },
+      { name: 'LDLC', price: 0, url: `https://www.ldlc.com/it-it/recherche/?q=${q}` },
+      { name: 'Alternate', price: 0, url: `https://www.alternate.it/listing.xhtml?q=${q}` },
+      { name: 'MediaWorld', price: 0, url: `https://www.mediaworld.it/search?q=${q}` },
+      { name: 'Unieuro', price: 0, url: `https://www.unieuro.it/online/search?query=${q}` },
       { name: 'eBay', price: 0, url: `https://www.ebay.it/sch/i.html?_nkw=${q}` },
-      { name: 'LDLC', price: 0, url: `https://www.ldlc.com/it-it/search/${q}/` },
     ]
   }
   return [

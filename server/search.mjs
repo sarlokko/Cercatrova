@@ -1,6 +1,7 @@
 import { assembleProduct } from './product.mjs'
 import { listCatalog, listingId, upsertListing, upsertProduct } from './db.mjs'
 import { liveSearchExtras, refreshProduct } from './engine.mjs'
+import { hardwareStorefronts } from './collectors/stores.mjs'
 
 const STOP = new Set(['per', 'del', 'della', 'dei', 'delle', 'con', 'una', 'uno', 'the', 'and'])
 
@@ -133,12 +134,8 @@ function makeLookup(query, category) {
         ? [['Google Play', `https://play.google.com/store/search?q=${encodeURIComponent(title)}&c=apps`]]
         : category === 'ios'
           ? [['App Store', `https://apps.apple.com/it/search?term=${encodeURIComponent(title)}`]]
-          : category === 'pc'
-            ? [
-                ['Amazon', `https://www.amazon.it/s?k=${encodeURIComponent(title)}`],
-                ['PcComponentes', `https://www.pccomponentes.it/buscar/?query=${encodeURIComponent(title)}`],
-                ['eBay', `https://www.ebay.it/sch/i.html?_nkw=${encodeURIComponent(title)}`],
-              ]
+          : category === 'pc' || category === 'nas'
+            ? hardwareStorefronts(title).map((s) => [s.store, s.url])
             : [
                 ['Amazon', `https://www.amazon.it/s?k=${encodeURIComponent(title)}`],
                 ['eBay', `https://www.ebay.it/sch/i.html?_nkw=${encodeURIComponent(title)}`],
@@ -164,7 +161,7 @@ export async function searchProducts(filters) {
     .sort((a, b) => b.s - a.s || (a.d.priceUnknown ? 1 : 0) - (b.d.priceUnknown ? 1 : 0))
     .map((x) => x.d)
 
-  const stale = local.filter((d) => d.priceUnknown && !d.lookup).slice(0, 3)
+  const stale = local.filter((d) => d.priceUnknown && !d.lookup).slice(0, 8)
   for (const d of stale) {
     await refreshProduct(d.id, { force: true })
   }

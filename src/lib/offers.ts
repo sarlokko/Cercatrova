@@ -34,6 +34,7 @@ export function merchantOfferUrl(merchant: Merchant, deal: Deal) {
   if (name.includes('app store')) return `https://apps.apple.com/it/search?term=${query}`
   if (name.includes('ugreen')) return `https://nas-eu.ugreen.com/en-it/search?q=${query}`
   if (name.includes('pccomponentes')) return `https://www.pccomponentes.it/buscar/?query=${query}`
+  if (name.includes('unieuro')) return `https://www.unieuro.it/online/search?query=${query}`
   if (name.includes('videolan') || name.includes('vlc')) return 'https://www.videolan.org/vlc/'
   if (name.includes('libreoffice')) {
     return 'https://www.libreoffice.org/download/download-libreoffice/'

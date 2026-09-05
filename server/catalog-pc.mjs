@@ -1,7 +1,16 @@
 /** Componenti PC. I prezzi NON stanno qui: arrivano dai collector. */
 
 function part(id, title, subtitle, tags, imageTone, listings) {
-  return { id, title, subtitle, category: 'pc', tags, imageTone, listings }
+  const have = new Set(listings.map((l) => l.store))
+  return {
+    id,
+    title,
+    subtitle,
+    category: 'pc',
+    tags,
+    imageTone,
+    listings: [...listings, ...extraShops(title).filter((s) => !have.has(s.store))],
+  }
 }
 
 function amz(q, asin) {
@@ -18,6 +27,18 @@ function pcc(q) {
     url: `https://www.pccomponentes.it/buscar/?query=${encodeURIComponent(q)}`,
     externalId: `pcc-${q.toLowerCase().replace(/\s+/g, '-')}`,
   }
+}
+
+function extraShops(title) {
+  const q = encodeURIComponent(title)
+  const slug = title.toLowerCase().replace(/\s+/g, '-').slice(0, 40)
+  return [
+    { store: 'LDLC', url: `https://www.ldlc.com/it-it/recherche/?q=${q}`, externalId: `ldlc-${slug}` },
+    { store: 'Alternate', url: `https://www.alternate.it/listing.xhtml?q=${q}`, externalId: `alt-${slug}` },
+    { store: 'MediaWorld', url: `https://www.mediaworld.it/search?q=${q}`, externalId: `mw-${slug}` },
+    { store: 'Unieuro', url: `https://www.unieuro.it/online/search?query=${q}`, externalId: `ue-${slug}` },
+    { store: 'eBay', url: `https://www.ebay.it/sch/i.html?_nkw=${q}`, externalId: `ebay-${slug}` },
+  ]
 }
 
 export const PC_SEED_PRODUCTS = [

@@ -17,6 +17,8 @@ export async function fetchText(url, { timeoutMs = 12000, headers = {} } = {}) {
     })
     const text = await res.text()
     return { ok: res.ok, status: res.status, text }
+  } catch (err) {
+    return { ok: false, status: 0, text: '', error: err instanceof Error ? err.message : 'fetch' }
   } finally {
     clearTimeout(t)
   }

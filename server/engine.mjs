@@ -12,6 +12,8 @@ import {
 import { amazonProduct, amazonSearch } from './collectors/amazon.mjs'
 import { officialPrice } from './collectors/official.mjs'
 import { steamAppPrice, steamSearch } from './collectors/steam.mjs'
+import { gogSearch, instantGamingSearch, isSearchUrl } from './collectors/stores.mjs'
+import { pickBest } from './collectors/match.mjs'
 import { assembleProduct } from './product.mjs'
 
 const lastLive = new Map()
@@ -27,6 +29,8 @@ function touch(key) {
 
 export async function refreshListing(listing) {
   const store = String(listing.store || '').toLowerCase()
+  const product = getProductRow(listing.product_id)
+  const title = product?.title || ''
   try {
     if (store.includes('steam') && listing.external_id) {
       const live = await steamAppPrice(listing.external_id)
@@ -52,13 +56,72 @@ export async function refreshListing(listing) {
     }
 
     if (store.includes('amazon')) {
-      const live = await amazonProduct(listing.url || listing.external_id || '')
+      const url = listing.url || listing.external_id || ''
+      if (isSearchUrl(url) || /\/s\?/.test(url)) {
+        const hit = pickBest(await amazonSearch(title || url), title)
+        if (hit?.price != null) {
+          upsertListing({
+            id: listing.id,
+            productId: listing.product_id,
+            store: listing.store,
+            url: hit.url,
+            externalId: hit.asin,
+            lastPrice: hit.price,
+            available: 1,
+            lastChecked: new Date().toISOString(),
+          })
+          recordPrice(listing.id, hit.price, 1)
+          return hit
+        }
+        markChecked(listing.id)
+        return null
+      }
+      const live = await amazonProduct(url)
       if (live?.price != null) {
         recordPrice(listing.id, live.price, live.available ?? 1)
         return live
       }
       markChecked(listing.id, live?.available ?? null)
       return null
+    }
+
+    if (store.includes('gog')) {
+      const hit = pickBest(await gogSearch(title), title)
+      if (hit?.price != null) {
+        upsertListing({
+          id: listing.id,
+          productId: listing.product_id,
+          store: listing.store,
+          url: hit.url || listing.url,
+          externalId: hit.externalId || listing.external_id,
+          lastPrice: hit.price,
+          listPrice: hit.list,
+          available: 1,
+          lastChecked: new Date().toISOString(),
+        })
+        recordPrice(listing.id, hit.price, 1)
+        return hit
+      }
+      markChecked(listing.id)
+      return null
+    }
+
+    if (store.includes('instant')) {
+      const hit = pickBest(await instantGamingSearch(title), title)
+      if (hit?.price != null) {
+        recordPrice(listing.id, hit.price, 1)
+        return hit
+      }
+      markChecked(listing.id)
+      return null
+    }
+
+    if (!isSearchUrl(listing.url) && listing.url) {
+      const live = await officialPrice(listing.url)
+      if (live?.price != null) {
+        recordPrice(listing.id, live.price, live.available ?? 1)
+        return live
+      }
     }
 
     if (store.includes('ugreen') || store.includes('libreoffice') || store.includes('videolan')) {
@@ -136,6 +199,38 @@ export async function liveSearchExtras(query, category) {
   const found = []
 
   if (steamish || category === 'all') {
+    try {
+      const gogHits = await gogSearch(q)
+      for (const hit of gogHits.slice(0, 3)) {
+        const id = `gog-${hit.externalId || hit.title.toLowerCase().replace(/\s+/g, '-')}`
+        upsertProduct({
+          id,
+          title: hit.title,
+          subtitle: 'Prezzo dal negozio GOG (live).',
+          category: 'steam',
+          tags: ['gog', 'gioco', ...q.toLowerCase().split(/\s+/)],
+          imageTone: '#4c1d95',
+          source: 'gog',
+        })
+        const lid = listingId(id, 'GOG')
+        upsertListing({
+          id: lid,
+          productId: id,
+          store: 'GOG',
+          url: hit.url,
+          externalId: hit.externalId,
+          lastPrice: hit.price,
+          listPrice: hit.list,
+          available: 1,
+          lastChecked: new Date().toISOString(),
+        })
+        recordPrice(lid, hit.price, 1)
+        const dto = assembleProduct(id)
+        if (dto) found.push(dto)
+      }
+    } catch {
+      /* GOG down */
+    }
     try {
       const hits = await steamSearch(q)
       const qTokens = q.toLowerCase().split(/\s+/).filter((t) => t.length > 2)

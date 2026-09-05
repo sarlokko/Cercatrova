@@ -26,6 +26,25 @@ export async function officialPrice(url) {
     }
   }
 
+  const jsonLd = text.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/gi) || []
+  for (const block of jsonLd) {
+    const raw = block.replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '')
+    try {
+      const data = JSON.parse(raw)
+      const nodes = Array.isArray(data) ? data : [data]
+      for (const node of nodes) {
+        const offers = node.offers
+        const offer = Array.isArray(offers) ? offers[0] : offers
+        if (offer?.price) {
+          const price = parseEuro(offer.price)
+          if (price != null) return { price, list: compareAt(text) ?? price, available: 1 }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   return null
 }
 

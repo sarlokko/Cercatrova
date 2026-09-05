@@ -1,4 +1,5 @@
 import { fetchText, parseEuro } from './http.mjs'
+import { titleMatches } from './match.mjs'
 
 /** Estrae un prezzo dal HTML Amazon solo se è ancorato al prodotto, non ai caroselli. */
 export function parseAmazonProduct(html) {
@@ -77,31 +78,23 @@ export async function amazonProduct(urlOrAsin) {
   return { ...parseAmazonProduct(text), url }
 }
 
-export async function amazonSearch(term) {
-  const q = term.trim()
-  if (q.length < 3) return []
-  const url = `https://www.amazon.it/s?k=${encodeURIComponent(q)}`
-  const { ok, text } = await fetchText(url)
-  if (!ok) return []
-  const cards = text.split('data-component-type="s-search-result"')
+export function parseAmazonSearch(html, query) {
+  if (!html || html.length < 80) return []
+  const seen = new Set()
   const out = []
-  const tokens = q.toLowerCase().split(/\s+/).filter((t) => t.length > 1)
-  for (const card of cards.slice(1, 16)) {
-    const head = card.slice(0, 1800)
-    const asin = (head.match(/data-asin="(B0[A-Z0-9]{8})"/) ||
-      head.match(/\/dp\/(B0[A-Z0-9]{8})/))?.[1]
-    const name = decode(
-      (head.match(/<h2[^>]*>[\s\S]*?<span[^>]*>([^<]+)/) || [])[1] || '',
-    )
-      .replace(/\s+/g, ' ')
-      .trim()
-    const priceRaw = (head.match(/class="a-offscreen">([^<]+)/) || [])[1]
-    const price = parseEuro(priceRaw)
-    if (!asin || !name || price == null) continue
-    const hay = name.toLowerCase()
-    const hits = tokens.filter((t) => hay.includes(t)).length
-    if (hits < Math.min(2, tokens.length)) continue
-    if (/ups|cavo| ram |modulo|custodia|alimentatore/i.test(name) && !/ups|cavo|ram/i.test(q)) {
+  const re = /data-asin="([A-Z0-9]{10})"/g
+  let m
+  while ((m = re.exec(html))) {
+    const asin = m[1]
+    if (seen.has(asin) || /^0+$/.test(asin)) continue
+    seen.add(asin)
+    const chunk = html.slice(m.index, m.index + 14000)
+    const name = amazonCardTitle(chunk)
+    if (!name) continue
+    const price = amazonCardPrice(chunk)
+    if (price == null) continue
+    if (query && !titleMatches(query, name)) continue
+    if (/ups|cavo|modulo|custodia/i.test(name) && !/ups|cavo|modulo|custodia/i.test(query || '')) {
       continue
     }
     out.push({
@@ -110,9 +103,40 @@ export async function amazonSearch(term) {
       price,
       url: `https://www.amazon.it/dp/${asin}`,
     })
-    if (out.length >= 5) break
+    if (out.length >= 6) break
   }
   return out
+}
+
+function amazonCardTitle(chunk) {
+  const h2 = chunk.match(/<h2[\s\S]{0,600}?<span[^>]*>\s*([^<]{8,220})/)
+  const raw = h2?.[1] || (chunk.match(/<h2[^>]*aria-label="([^"]{8,220})"/) || [])[1]
+  const name = decode(raw || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!name || /aggiungi al carrello|add to cart|scopri di più/i.test(name)) return ''
+  return name
+}
+
+function amazonCardPrice(chunk) {
+  const off = chunk.match(/class="a-offscreen">\s*([^<]+)/)
+  if (off) {
+    const price = parseEuro(off[1])
+    if (price != null && price > 0) return price
+  }
+  const whole = (chunk.match(/class="a-price-whole">\s*([^<]+)/) || [])[1]
+  if (!whole) return null
+  const frac = (chunk.match(/class="a-price-fraction">\s*([^<]+)/) || [])[1] || '00'
+  return parseEuro(`${String(whole).replace(/[^\d]/g, '')},${frac}`)
+}
+
+export async function amazonSearch(term) {
+  const q = term.trim()
+  if (q.length < 3) return []
+  const url = `https://www.amazon.it/s?k=${encodeURIComponent(q)}`
+  const { ok, text } = await fetchText(url)
+  if (!ok) return []
+  return parseAmazonSearch(text, q)
 }
 
 function decode(s) {

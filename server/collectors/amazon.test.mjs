@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseAmazonProduct } from './amazon.mjs'
+import { parseAmazonProduct, parseAmazonSearch } from './amazon.mjs'
 
 describe('parseAmazonProduct', () => {
   it('legge olpMessage e non usa i caroselli', () => {
@@ -19,6 +19,32 @@ describe('parseAmazonProduct', () => {
   it('legge og:price', () => {
     const html = `<meta property="og:price:amount" content="249,00"><span id="productTitle">SSD</span>`
     assert.equal(parseAmazonProduct(html).price, 249)
+  })
+
+  it('legge titolo e prezzo dalle schede di ricerca Amazon', () => {
+    const html = `
+      <div data-asin="B0BTZB7F88" data-component-type="s-search-result">
+        <h2 class="a-size-mini"><a><span>Processore AMD Ryzen 7 7800X3D 8 core</span></a></h2>
+        ${'x'.repeat(2000)}
+        <span class="a-price" data-a-size="xl"><span class="a-offscreen">400,26 €</span>
+        <span class="a-price-whole">400</span><span class="a-price-fraction">26</span></span>
+      </div>
+    `
+    const hits = parseAmazonSearch(html, 'Ryzen 7 7800X3D')
+    assert.equal(hits.length, 1)
+    assert.equal(hits[0].asin, 'B0BTZB7F88')
+    assert.equal(hits[0].price, 400.26)
+    assert.match(hits[0].title, /7800X3D/)
+  })
+
+  it('scarta le schede che non c’entrano con la query', () => {
+    const html = `
+      <div data-asin="B0AAAAAAAA">
+        <h2><span>Cavo HDMI 2 metri nero</span></h2>
+        <span class="a-offscreen">9,99 €</span>
+      </div>
+    `
+    assert.equal(parseAmazonSearch(html, 'Ryzen 7 7800X3D').length, 0)
   })
 
   it('senza segnale affidabile torna null, non il primo a-offscreen', () => {

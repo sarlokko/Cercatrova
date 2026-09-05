@@ -343,3 +343,23 @@ export const SEED_PRODUCTS = [
   },
   ...PC_SEED_PRODUCTS,
 ]
+
+for (const p of SEED_PRODUCTS) {
+  if (p.category !== 'steam') continue
+  const q = encodeURIComponent(p.title)
+  const have = new Set(p.listings.map((l) => l.store))
+  if (!have.has('GOG')) {
+    p.listings.push({
+      store: 'GOG',
+      url: `https://www.gog.com/en/games?query=${q}`,
+      externalId: `gog-${p.id}`,
+    })
+  }
+  if (!have.has('Instant Gaming')) {
+    p.listings.push({
+      store: 'Instant Gaming',
+      url: `https://www.instant-gaming.com/it/ricerca/?q=${q}`,
+      externalId: `ig-${p.id}`,
+    })
+  }
+}
