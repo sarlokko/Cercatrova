@@ -1,4 +1,4 @@
-import type { Deal, Verdict } from '../data/deals'
+import { bestLivePrice, type Deal, type Verdict } from '../data/deals'
 
 const BUY_NOW = new Set(['eccezionale', 'ottimo', 'gratis'])
 const BUY_KINDS = new Set(['gratis', 'sconto', 'minimo', 'errore', 'coupon', 'scade'])
@@ -90,7 +90,13 @@ export function judgeFromPrices(deal: Deal): Verdict {
 }
 
 export function withVerdict(deal: Deal): Deal {
-  return deal.verdict ? deal : { ...deal, verdict: judgeFromPrices(deal) }
+  const live = bestLivePrice(deal)
+  const priced =
+    live != null && live > 0 && deal.priceUnknown
+      ? { ...deal, priceUnknown: false, currentPrice: live }
+      : deal
+  if (priced.verdict && !deal.priceUnknown) return priced
+  return { ...priced, verdict: judgeFromPrices(priced) }
 }
 
 export function isWorthBuyingNow(deal: Deal): boolean {

@@ -1379,15 +1379,29 @@ export function formatPrice(price: number, currency = '€') {
   return `${currency}${price.toFixed(2).replace('.', ',')}`
 }
 
-export function formatDealPrice(deal: Pick<Deal, 'currentPrice' | 'currency' | 'priceUnknown' | 'isFree'>) {
+export function bestLivePrice(
+  deal: Pick<Deal, 'currentPrice' | 'priceUnknown' | 'isFree' | 'merchants'>,
+): number | null {
+  if (deal.isFree) return 0
+  const fromStores = (deal.merchants || []).map((m) => m.price).filter((p) => p > 0)
+  if (fromStores.length) return Math.min(...fromStores)
+  if (!deal.priceUnknown && deal.currentPrice > 0) return deal.currentPrice
+  return null
+}
+
+export function formatDealPrice(deal: Pick<Deal, 'currentPrice' | 'currency' | 'priceUnknown' | 'isFree' | 'merchants'>) {
+  const live = bestLivePrice(deal)
+  if (live === 0 && deal.isFree) return 'Gratis'
+  if (live != null && live > 0) return formatPrice(live, deal.currency)
   if (deal.priceUnknown) return 'Vedi negozio'
   if (deal.isFree || deal.currentPrice === 0) return 'Gratis'
   return formatPrice(deal.currentPrice, deal.currency)
 }
 
 export function formatMerchantPrice(deal: Deal, merchant: Merchant) {
-  if (deal.priceUnknown || (merchant.price === 0 && !deal.isFree)) return 'Apri'
-  return formatPrice(merchant.price, deal.currency)
+  if (merchant.price > 0) return formatPrice(merchant.price, deal.currency)
+  if (deal.isFree && merchant.price === 0) return 'Gratis'
+  return 'Apri'
 }
 
 export function slugify(value: string) {

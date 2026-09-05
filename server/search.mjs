@@ -169,13 +169,8 @@ export async function searchProducts(filters) {
     .sort((a, b) => b.s - a.s || (a.d.priceUnknown ? 1 : 0) - (b.d.priceUnknown ? 1 : 0))
     .map((x) => x.d)
 
-  const stale = local.filter((d) => d.priceUnknown && !d.lookup).slice(0, 8)
-  for (const d of stale) {
-    await refreshProduct(d.id, { force: true })
-  }
-  const localFresh = stale.length
-    ? local.map((d) => assembleProduct(d.id) || d)
-    : local
+  const stale = local.filter((d) => d.priceUnknown && !d.lookup).slice(0, 4)
+  await Promise.all(stale.map((d) => refreshProduct(d.id, { force: true, quick: true })))
 
   const q = filters.query.trim()
   let extra = []
@@ -183,22 +178,55 @@ export async function searchProducts(filters) {
     extra = await liveSearchExtras(q, filters.category)
   }
 
+  const localFresh = local.map((d) => assembleProduct(d.id) || d)
+
   const seen = new Set(localFresh.map((d) => d.id))
   const merged = [...localFresh]
   for (const d of extra) {
-    if (!seen.has(d.id) && score(d, { ...filters, query: '' }) >= 0) {
-      // extras already match the query from the store
-      if (filters.maxPrice != null && !d.priceUnknown && !d.isFree && d.currentPrice > filters.maxPrice) {
-        continue
-      }
-      merged.push(d)
-      seen.add(d.id)
+    if (seen.has(d.id)) continue
+    if (score(d, { ...filters, query: '' }) < 0) continue
+    if (filters.maxPrice != null && !d.priceUnknown && !d.isFree && d.currentPrice > filters.maxPrice) {
+      continue
     }
+    merged.push(d)
+    seen.add(d.id)
   }
 
-  if (merged.length) return merged
+  const ranked = dedupeByTitle(merged).sort((a, b) => {
+    if (a.priceUnknown !== b.priceUnknown) return a.priceUnknown ? 1 : -1
+    return 0
+  })
+
+  if (ranked.length) return ranked
   if (q.length >= 2 && !filters.onlyFree) {
     return [makeLookup(q, filters.category === 'all' ? guessCategory(q) : filters.category)]
   }
   return []
+}
+
+function titleKey(title) {
+  return String(title || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/\((android|ios|iphone|ipad|pc|steam)\)/g, '')
+    .replace(/[^a-z0-9]+/g, '')
+}
+
+function dedupeByTitle(rows) {
+  const best = new Map()
+  for (const row of rows) {
+    const key = titleKey(row.title)
+    if (!key) continue
+    const prev = best.get(key)
+    if (!prev) {
+      best.set(key, row)
+      continue
+    }
+    if (prev.priceUnknown && !row.priceUnknown) best.set(key, row)
+    else if (!prev.priceUnknown && !row.priceUnknown && row.currentPrice < prev.currentPrice) {
+      best.set(key, row)
+    }
+  }
+  return [...best.values()]
 }

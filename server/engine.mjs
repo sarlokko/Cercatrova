@@ -33,28 +33,52 @@ function touch(key) {
   lastLive.set(key, Date.now())
 }
 
+export function steamAppId(listing) {
+  const ext = String(listing.external_id || '')
+  if (/^\d+$/.test(ext)) return ext
+  const m = String(listing.url || '').match(/\/app\/(\d+)/)
+  return m?.[1] ?? null
+}
+
+export function listingCanLivePrice(listing) {
+  const store = String(listing.store || '').toLowerCase()
+  if (store.includes('playstation') || store.includes('epic') || store.includes('google play')) {
+    return false
+  }
+  if (store.includes('steam')) return Boolean(steamAppId(listing))
+  if (store.includes('xbox')) return true
+  if (store.includes('app store')) return true
+  if (store.includes('amazon')) return true
+  if (store.includes('gog')) return true
+  if (store.includes('instant')) return true
+  if (store.includes('libreoffice') || store.includes('videolan') || store.includes('ugreen')) {
+    return true
+  }
+  return false
+}
+
 export async function refreshListing(listing) {
   const store = String(listing.store || '').toLowerCase()
   const product = getProductRow(listing.product_id)
   const title = product?.title || ''
   try {
-    if (store.includes('steam') && listing.external_id) {
-      const live = await steamAppPrice(listing.external_id)
+    if (store.includes('steam')) {
+      const appId = steamAppId(listing)
+      const live = appId ? await steamAppPrice(appId) : pickBest(await steamSearch(title), title)
       if (live && live.price != null) {
+        const ext = appId || live.appId || listing.external_id
         recordPrice(listing.id, live.price, live.available ?? 1)
-        if (live.list != null) {
-          upsertListing({
-            id: listing.id,
-            productId: listing.product_id,
-            store: listing.store,
-            url: live.url || listing.url,
-            externalId: listing.external_id,
-            lastPrice: live.price,
-            listPrice: live.list,
-            available: live.available ?? 1,
-            lastChecked: new Date().toISOString(),
-          })
-        }
+        upsertListing({
+          id: listing.id,
+          productId: listing.product_id,
+          store: listing.store,
+          url: live.url || listing.url,
+          externalId: ext,
+          lastPrice: live.price,
+          listPrice: live.list,
+          available: live.available ?? 1,
+          lastChecked: new Date().toISOString(),
+        })
         return live
       }
       markChecked(listing.id, null)
@@ -232,13 +256,12 @@ export async function refreshListing(listing) {
   }
 }
 
-export async function refreshProduct(productId, { force = false } = {}) {
+export async function refreshProduct(productId, { force = false, quick = false } = {}) {
   const key = `p:${productId}`
   if (!force && recently(key, 2 * 60 * 1000)) return assembleProduct(productId)
-  const listings = listingsFor(productId)
-  for (const listing of listings) {
-    await refreshListing(listing)
-  }
+  let listings = listingsFor(productId)
+  if (quick) listings = listings.filter(listingCanLivePrice).slice(0, 3)
+  await Promise.all(listings.map((listing) => refreshListing(listing)))
   touch(key)
   return assembleProduct(productId)
 }

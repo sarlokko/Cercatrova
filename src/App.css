@@ -841,6 +841,18 @@
   text-decoration: line-through;
 }
 
+.deal-price__stores {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.08rem;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  line-height: 1.25;
+}
+
 .deal-price__delta {
   margin-top: 0.2rem;
   font-size: 0.8rem;
@@ -868,9 +880,15 @@
     grid-area: price;
     text-align: left;
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     gap: 0.65rem;
     padding-left: 4.35rem;
+  }
+
+  .deal-price__stores {
+    align-items: flex-start;
+    flex: 1 1 100%;
   }
 }
 

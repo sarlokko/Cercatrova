@@ -3,6 +3,7 @@ import {
   type Deal,
   categoryLabel,
   formatDealPrice,
+  formatMerchantPrice,
   formatPrice,
   isPreorderDeal,
   kindLabel,
@@ -61,12 +62,21 @@ export function DealRow({ deal, tone }: Props) {
       </div>
       <div className="deal-price">
         <div
-          className={`deal-price__now${deal.isFree ? ' free' : ''}${deal.priceUnknown ? ' unknown' : ''}`}
+          className={`deal-price__now${deal.isFree ? ' free' : ''}${deal.priceUnknown && !deal.merchants.some((m) => m.price > 0) ? ' unknown' : ''}`}
         >
           {formatDealPrice(deal)}
         </div>
         {deal.discountPct > 0 && !deal.priceUnknown ? (
           <div className="deal-price__was">{formatPrice(deal.normalPrice, deal.currency)}</div>
+        ) : null}
+        {deal.merchants.length > 0 ? (
+          <div className="deal-price__stores">
+            {deal.merchants.slice(0, 4).map((m) => (
+              <span key={m.name}>
+                {m.name} {formatMerchantPrice(deal, m)}
+              </span>
+            ))}
+          </div>
         ) : null}
         <div className="deal-price__delta">{priceDeltaLabel(deal)}</div>
       </div>
