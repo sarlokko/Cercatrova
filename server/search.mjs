@@ -7,7 +7,13 @@ const STOP = new Set(['per', 'del', 'della', 'dei', 'delle', 'con', 'una', 'uno'
 const GROUPS = [
   ['hdd', 'harddisk', 'disco', 'rigido', 'ironwolf', 'cmr'],
   ['ssd', 'nvme'],
-  ['ram', 'memoria', 'sodimm', 'ddr', 'ddr4', 'crucial'],
+  ['ram', 'memoria', 'sodimm', 'dimm', 'ddr', 'ddr4', 'ddr5', 'crucial'],
+  ['cpu', 'processore', 'ryzen', 'intel'],
+  ['gpu', 'rtx', 'radeon', 'geforce'],
+  ['case', 'cabinet', 'torre', 'chassis'],
+  ['mobo', 'motherboard', 'b650', 'z790', 'z890'],
+  ['psu', 'alimentatore'],
+  ['cooler', 'dissipatore', 'aio'],
   ['nas', 'synology', 'qnap', 'terramaster', 'ugreen', 'ugos', 'nasync', 'storage', 'bay', 'ds224'],
   ['ugreen', 'ugos', 'nasync', 'dxp', 'dxp2800', '2800', 'dxp4800', '4800'],
   ['gratis', 'free', 'zero'],
@@ -81,7 +87,15 @@ export function guessCategory(query) {
   if (/\b(android|play store)\b/.test(t)) return 'android'
   if (/\b(steam|epic|gog|gioco|giochi|game|games)\b/.test(t)) return 'steam'
   if (/\b(office|windows|adobe|software)\b/.test(t)) return 'software'
-  if (/\b(nas|ugreen|synology|qnap|hdd|ssd|nvme|wd|nasync|dxp)\b/.test(t)) return 'nas'
+  if (
+    /\b(cpu|gpu|ryzen|radeon|rtx|geforce|case|cabinet|mobo|motherboard|madre|psu|ddr5|ddr4|cooler|dissipatore|am5|b650|z790|z890|alimentatore|processore|componenti)\b/.test(
+      t,
+    )
+  ) {
+    return 'pc'
+  }
+  if (/\b(nas|ugreen|synology|qnap|nasync|dxp|ironwolf)\b/.test(t)) return 'nas'
+  if (/\b(ram|ssd|nvme|hdd|wd)\b/.test(t)) return /\b(nas|red)\b/.test(t) ? 'nas' : 'pc'
   return 'nas'
 }
 
@@ -119,10 +133,16 @@ function makeLookup(query, category) {
         ? [['Google Play', `https://play.google.com/store/search?q=${encodeURIComponent(title)}&c=apps`]]
         : category === 'ios'
           ? [['App Store', `https://apps.apple.com/it/search?term=${encodeURIComponent(title)}`]]
-          : [
-              ['Amazon', `https://www.amazon.it/s?k=${encodeURIComponent(title)}`],
-              ['eBay', `https://www.ebay.it/sch/i.html?_nkw=${encodeURIComponent(title)}`],
-            ]
+          : category === 'pc'
+            ? [
+                ['Amazon', `https://www.amazon.it/s?k=${encodeURIComponent(title)}`],
+                ['PcComponentes', `https://www.pccomponentes.it/buscar/?query=${encodeURIComponent(title)}`],
+                ['eBay', `https://www.ebay.it/sch/i.html?_nkw=${encodeURIComponent(title)}`],
+              ]
+            : [
+                ['Amazon', `https://www.amazon.it/s?k=${encodeURIComponent(title)}`],
+                ['eBay', `https://www.ebay.it/sch/i.html?_nkw=${encodeURIComponent(title)}`],
+              ]
   for (const [store, url] of stores) {
     upsertListing({
       id: listingId(id, store),

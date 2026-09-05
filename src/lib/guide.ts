@@ -97,37 +97,12 @@ export const GUIDE_ROOT: GuideStep = {
       },
     },
     {
-      id: 'ram',
-      label: 'RAM',
-      hint: 'memoria per PC o NAS',
-      query: 'ram',
-      category: 'nas',
-      next: {
-        id: 'ram-type',
-        question: 'Bene. Di che tipo?',
-        aside: 'I NAS UGREEN/Synology recenti usano spesso DDR5 SODIMM.',
-        choices: [
-          {
-            id: 'ddr5',
-            label: 'DDR5',
-            query: 'ddr5',
-            next: ramAmount('ddr5'),
-          },
-          {
-            id: 'ddr4',
-            label: 'DDR4',
-            query: 'ddr4',
-            next: ramAmount('ddr4'),
-          },
-          {
-            id: 'sodimm',
-            label: 'SODIMM (NAS / laptop)',
-            query: 'sodimm',
-            next: ramAmount('sodimm'),
-          },
-          { id: 'ram-bo', label: 'Non lo so', query: 'ram' },
-        ],
-      },
+      id: 'pc',
+      label: 'Componenti PC',
+      hint: 'case, CPU, GPU, RAM…',
+      query: 'pc',
+      category: 'pc',
+      next: pcPartsStep(),
     },
     {
       id: 'hdd',
@@ -145,23 +120,6 @@ export const GUIDE_ROOT: GuideStep = {
           { id: '12tb', label: '12 TB', query: '12tb red plus' },
           { id: '16tb', label: '16 TB', query: '16tb' },
           { id: 'hdd-bo', label: 'Non lo so', query: 'wd red' },
-        ],
-      },
-    },
-    {
-      id: 'ssd',
-      label: 'Un SSD',
-      hint: 'NVMe o SATA',
-      query: 'ssd',
-      category: 'nas',
-      next: {
-        id: 'ssd-type',
-        question: 'Che tipo di SSD?',
-        aside: 'NVMe è il più veloce. Per cache NAS spesso basta un 1–2 TB.',
-        choices: [
-          { id: 'nvme', label: 'NVMe', query: 'nvme', next: ssdSize('nvme') },
-          { id: 'sata', label: 'SATA 2,5"', query: 'sata ssd', next: ssdSize('sata ssd') },
-          { id: 'ssd-bo', label: 'Non lo so', query: 'ssd 2tb' },
         ],
       },
     },
@@ -237,6 +195,238 @@ export const GUIDE_ROOT: GuideStep = {
       },
     },
   ],
+}
+
+function pcPartsStep(): GuideStep {
+  return {
+    id: 'pc-part',
+    question: 'Che componente ti serve?',
+    aside: 'Scegli la categoria. Poi marca, tipo, quantità — e ti trovo la più adatta.',
+    freeLabel: 'Ho già il modello esatto',
+    choices: [
+      {
+        id: 'case',
+        label: 'Case',
+        hint: 'cabinet, torre',
+        query: 'case',
+        next: {
+          id: 'case-size',
+          question: 'Che formato?',
+          aside: 'Mid-tower è il più comune. Mini-ITX se vuoi piccolo.',
+          choices: [
+            {
+              id: 'mid',
+              label: 'Mid-tower',
+              query: 'mid-tower atx',
+              next: caseBrand('mid-tower'),
+            },
+            {
+              id: 'itx',
+              label: 'Mini-ITX',
+              hint: 'compatto',
+              query: 'mini-itx',
+              next: caseBrand('mini-itx'),
+            },
+            { id: 'full', label: 'Full-tower', query: 'full-tower' },
+            { id: 'case-bo', label: 'Non importa', query: 'case mid-tower' },
+          ],
+        },
+      },
+      {
+        id: 'cpu',
+        label: 'CPU',
+        hint: 'processore',
+        query: 'cpu',
+        next: {
+          id: 'cpu-brand',
+          question: 'AMD o Intel?',
+          aside: 'Poi ti chiedo la fascia. Se hai già il modello, scrivilo sotto.',
+          choices: [
+            {
+              id: 'amd',
+              label: 'AMD',
+              hint: 'Ryzen, AM5',
+              query: 'ryzen',
+              next: {
+                id: 'amd-tier',
+                question: 'Quale Ryzen?',
+                aside: 'Il 7800X3D è il più cercato per il gaming.',
+                choices: [
+                  { id: 'r5', label: 'Ryzen 5', hint: '7600 e simili', query: 'ryzen 5 7600' },
+                  { id: 'r7x3d', label: 'Ryzen 7 X3D', hint: '7800X3D', query: '7800x3d' },
+                  { id: 'r7', label: 'Ryzen 7', hint: '9700X', query: '9700x' },
+                  { id: 'amd-bo', label: 'Non lo so', query: 'ryzen cpu' },
+                ],
+              },
+            },
+            {
+              id: 'intel',
+              label: 'Intel',
+              hint: 'Core / Ultra',
+              query: 'intel',
+              next: {
+                id: 'intel-tier',
+                question: 'Quale Intel?',
+                aside: '14600K è LGA1700. Ultra 7 è la generazione nuova (LGA1851).',
+                choices: [
+                  { id: 'i5', label: 'Core i5', hint: '14600K', query: '14600k' },
+                  { id: 'u7', label: 'Core Ultra 7', hint: '265K', query: '265k' },
+                  { id: 'intel-bo', label: 'Non lo so', query: 'intel cpu' },
+                ],
+              },
+            },
+            { id: 'cpu-bo', label: 'Non importa', query: 'cpu' },
+          ],
+        },
+      },
+      {
+        id: 'gpu',
+        label: 'GPU',
+        hint: 'scheda video',
+        query: 'gpu',
+        next: {
+          id: 'gpu-brand',
+          question: 'NVIDIA o AMD?',
+          aside: 'I listini saltano: se non conviene, ti avviso io.',
+          choices: [
+            {
+              id: 'nvidia',
+              label: 'NVIDIA',
+              hint: 'GeForce RTX',
+              query: 'rtx',
+              next: {
+                id: 'rtx-tier',
+                question: 'Quale RTX?',
+                aside: '5060 Ti / 5070 / 5080. Se hai già il modello, scrivilo.',
+                choices: [
+                  { id: '5060', label: 'RTX 5060 Ti', query: '5060 ti' },
+                  { id: '5070', label: 'RTX 5070', query: '5070' },
+                  { id: '5080', label: 'RTX 5080', query: '5080' },
+                  { id: 'rtx-bo', label: 'Non lo so', query: 'rtx gpu' },
+                ],
+              },
+            },
+            {
+              id: 'amdgpu',
+              label: 'AMD',
+              hint: 'Radeon',
+              query: 'radeon',
+              next: {
+                id: 'rx-tier',
+                question: 'Quale Radeon?',
+                aside: '9070 XT è la fascia alta recente.',
+                choices: [
+                  { id: '9070', label: 'RX 9070 XT', query: '9070 xt' },
+                  { id: 'rx-bo', label: 'Guarda tu', query: 'radeon gpu' },
+                ],
+              },
+            },
+            { id: 'gpu-bo', label: 'Non importa', query: 'gpu' },
+          ],
+        },
+      },
+      {
+        id: 'ram',
+        label: 'RAM',
+        hint: 'memoria',
+        query: 'ram',
+        next: {
+          id: 'ram-type',
+          question: 'Bene. Di che tipo?',
+          aside: 'Desktop = DIMM. NAS e laptop = SODIMM. I kit recenti sono DDR5.',
+          choices: [
+            { id: 'ddr5', label: 'DDR5', query: 'ddr5 dimm', next: ramAmount('ddr5') },
+            { id: 'ddr4', label: 'DDR4', query: 'ddr4', next: ramAmount('ddr4') },
+            { id: 'sodimm', label: 'SODIMM (NAS / laptop)', query: 'sodimm', next: ramAmount('sodimm') },
+            { id: 'ram-bo', label: 'Non lo so', query: 'ram' },
+          ],
+        },
+      },
+      {
+        id: 'mobo',
+        label: 'Scheda madre',
+        hint: 'motherboard',
+        query: 'mobo',
+        next: {
+          id: 'mobo-sock',
+          question: 'Che socket?',
+          aside: 'Deve combaciare con la CPU. AM5 = Ryzen 7000/9000. LGA1851 = Ultra.',
+          choices: [
+            { id: 'am5', label: 'AM5', hint: 'Ryzen 7000/9000', query: 'b650 am5' },
+            { id: 'lga1700', label: 'LGA1700', hint: '12ª–14ª gen', query: 'z790 lga1700' },
+            { id: 'lga1851', label: 'LGA1851', hint: 'Core Ultra', query: 'z890 lga1851' },
+            { id: 'mobo-bo', label: 'Non lo so', query: 'scheda madre' },
+          ],
+        },
+      },
+      {
+        id: 'psu',
+        label: 'Alimentatore',
+        hint: 'PSU, i watt',
+        query: 'psu',
+        next: {
+          id: 'psu-w',
+          question: 'Quanti watt?',
+          aside: '750 W sta su un 5070. 1000 W se punti in alto.',
+          choices: [
+            { id: 'w650', label: '650 W', query: '650w alimentatore' },
+            { id: 'w750', label: '750 W', query: '750w' },
+            { id: 'w850', label: '850 W', query: '850w' },
+            { id: 'w1000', label: '1000 W', query: '1000w' },
+            { id: 'psu-bo', label: 'Non lo so', query: 'alimentatore gold' },
+          ],
+        },
+      },
+      {
+        id: 'cooler',
+        label: 'Raffreddamento',
+        hint: 'aria o liquido',
+        query: 'cooler',
+        next: {
+          id: 'cool-kind',
+          question: 'Aria o liquido?',
+          aside: 'Aria è silenziosa e basta per tanta gente. AIO 360 se tiri la CPU.',
+          choices: [
+            { id: 'air', label: 'Aria', query: 'dissipatore aria' },
+            { id: 'aio240', label: 'AIO 240 mm', query: 'aio 240' },
+            { id: 'aio360', label: 'AIO 360 mm', query: 'aio 360' },
+            { id: 'cool-bo', label: 'Non lo so', query: 'dissipatore' },
+          ],
+        },
+      },
+      {
+        id: 'ssd',
+        label: 'SSD',
+        hint: 'NVMe o SATA',
+        query: 'ssd',
+        next: {
+          id: 'ssd-type',
+          question: 'Che tipo di SSD?',
+          aside: 'Per il PC quasi sempre NVMe. 1–2 TB è la fascia più cercata.',
+          choices: [
+            { id: 'nvme', label: 'NVMe', query: 'nvme', next: ssdSize('nvme') },
+            { id: 'sata', label: 'SATA 2,5"', query: 'sata ssd', next: ssdSize('sata ssd') },
+            { id: 'ssd-bo', label: 'Non lo so', query: 'ssd 2tb' },
+          ],
+        },
+      },
+    ],
+  }
+}
+
+function caseBrand(prefix: string): GuideStep {
+  return {
+    id: `case-brand-${prefix}`,
+    question: 'Di che marca?',
+    aside: 'Se non sai, “Non importa”: guardo i mid-tower che si cercano di più.',
+    choices: [
+      { id: 'fractal', label: 'Fractal', hint: 'North', query: 'fractal north' },
+      { id: 'lianli', label: 'Lian Li', hint: 'Lancool', query: 'lian li lancool' },
+      { id: 'corsair', label: 'Corsair', hint: '4000D', query: 'corsair 4000d' },
+      { id: 'nzxt', label: 'NZXT', query: 'nzxt h5' },
+      { id: 'case-any', label: 'Non importa', query: 'case' },
+    ],
+  }
 }
 
 function ramAmount(prefix: string): GuideStep {

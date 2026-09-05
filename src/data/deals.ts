@@ -1,4 +1,4 @@
-export type Category = 'software' | 'nas' | 'steam' | 'android' | 'ios'
+export type Category = 'software' | 'nas' | 'pc' | 'steam' | 'android' | 'ios'
 
 export type DealKind =
   | 'gratis'
@@ -71,7 +71,7 @@ export type Verdict = {
 /** Snapshot listini pubblici, non un feed in tempo reale. */
 export const PRICES_CHECKED_AT = '2026-09-04'
 
-export const CATEGORIES: Category[] = ['nas', 'software', 'steam', 'android', 'ios']
+export const CATEGORIES: Category[] = ['nas', 'pc', 'software', 'steam', 'android', 'ios']
 
 export function isCategory(value: string): value is Category {
   return (CATEGORIES as string[]).includes(value)
@@ -134,6 +134,352 @@ function item(draft: Draft): Deal {
         ? []
         : wave(draft.avgPrice || current, 32, Math.max(2, current * 0.045), current)),
   }
+}
+
+function pcPart(
+  draft: Omit<Draft, 'category' | 'currentPrice' | 'normalPrice' | 'avgPrice' | 'minPrice6m'> & {
+    merchants: Merchant[]
+    tags: string[]
+  },
+): Deal {
+  return item({
+    ...draft,
+    category: 'pc',
+    kind: 'monitora',
+    currentPrice: 0,
+    normalPrice: 0,
+    avgPrice: 0,
+    minPrice6m: 0,
+    priceUnknown: true,
+  })
+}
+
+function shop(name: string, url: string): Merchant {
+  return { name, price: 0, url }
+}
+
+function pcParts(): Deal[] {
+  return [
+    pcPart({
+      id: 'pc-fractal-north',
+      title: 'Fractal North',
+      subtitle: 'Case mid-tower mesh, legno. Prezzo solo se il negozio risponde.',
+      imageTone: '#5c4033',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Fractal+North'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Fractal%20North'),
+      ],
+      tags: ['pc', 'CASE', 'Fractal', 'North', 'mid-tower', 'atx'],
+    }),
+    pcPart({
+      id: 'pc-lianli-lancool-217',
+      title: 'Lian Li Lancool 217',
+      subtitle: 'Case mid-tower airflow. Listino da verificare in negozio.',
+      imageTone: '#111111',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Lian+Li+Lancool+217'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Lancool%20217'),
+      ],
+      tags: ['pc', 'CASE', 'Lian Li', 'Lancool', 'mid-tower', 'atx'],
+    }),
+    pcPart({
+      id: 'pc-corsair-4000d',
+      title: 'Corsair 4000D Airflow',
+      subtitle: 'Case mid-tower, un classico. Niente cifra inventata.',
+      imageTone: '#1b2838',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Corsair+4000D+Airflow'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=4000D%20Airflow'),
+      ],
+      tags: ['pc', 'CASE', 'Corsair', '4000D', 'mid-tower', 'atx'],
+    }),
+    pcPart({
+      id: 'pc-nzxt-h5-flow',
+      title: 'NZXT H5 Flow',
+      subtitle: 'Case mid-tower compatto. Apri il negozio per il prezzo vero.',
+      imageTone: '#2b2d42',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=NZXT+H5+Flow'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=NZXT%20H5%20Flow'),
+      ],
+      tags: ['pc', 'CASE', 'NZXT', 'H5', 'mid-tower', 'atx'],
+    }),
+    pcPart({
+      id: 'pc-nr200p',
+      title: 'Cooler Master NR200P',
+      subtitle: 'Case Mini-ITX. Monitora: il street price gira spesso.',
+      imageTone: '#c1121f',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Cooler+Master+NR200P'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=NR200P'),
+      ],
+      tags: ['pc', 'CASE', 'ITX', 'mini-itx', 'NR200P', 'Cooler Master', 'sff'],
+    }),
+    pcPart({
+      id: 'pc-ryzen-7800x3d',
+      title: 'AMD Ryzen 7 7800X3D',
+      subtitle: 'CPU AM5 8 core, cache 3D. Gaming: il riferimento. Prezzo live dal negozio.',
+      imageTone: '#7b2d8e',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Ryzen+7+7800X3D'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=7800X3D'),
+      ],
+      tags: ['pc', 'CPU', 'AMD', 'Ryzen', '7800X3D', 'AM5', 'processore'],
+    }),
+    pcPart({
+      id: 'pc-ryzen-7600',
+      title: 'AMD Ryzen 5 7600',
+      subtitle: 'CPU AM5 6 core. Fascia media, niente prezzo fermo nel repo.',
+      imageTone: '#6a1b9a',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Ryzen+5+7600'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Ryzen%205%207600'),
+      ],
+      tags: ['pc', 'CPU', 'AMD', 'Ryzen', '7600', 'AM5', 'processore'],
+    }),
+    pcPart({
+      id: 'pc-ryzen-9700x',
+      title: 'AMD Ryzen 7 9700X',
+      subtitle: 'CPU AM5 Zen 5. Apri Amazon/PcComponentes per il listino di oggi.',
+      imageTone: '#4a148c',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Ryzen+7+9700X'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=9700X'),
+      ],
+      tags: ['pc', 'CPU', 'AMD', 'Ryzen', '9700X', 'AM5', 'processore'],
+    }),
+    pcPart({
+      id: 'pc-intel-14600k',
+      title: 'Intel Core i5-14600K',
+      subtitle: 'CPU LGA1700. Monitora: sconta a ondate.',
+      imageTone: '#0071c5',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=i5-14600K'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=14600K'),
+      ],
+      tags: ['pc', 'CPU', 'Intel', '14600K', 'LGA1700', 'processore'],
+    }),
+    pcPart({
+      id: 'pc-intel-265k',
+      title: 'Intel Core Ultra 7 265K',
+      subtitle: 'CPU LGA1851 Arrow Lake. Prezzo solo se il negozio risponde.',
+      imageTone: '#0054a6',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Core+Ultra+7+265K'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=265K'),
+      ],
+      tags: ['pc', 'CPU', 'Intel', '265K', 'Ultra', 'LGA1851', 'processore'],
+    }),
+    pcPart({
+      id: 'pc-rtx-5070',
+      title: 'NVIDIA GeForce RTX 5070',
+      subtitle: 'GPU 50-series. Il buy box gira: meglio “non disponibile” che un numero finto.',
+      imageTone: '#76b900',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=RTX+5070'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=RTX%205070'),
+      ],
+      tags: ['pc', 'GPU', 'NVIDIA', 'RTX', '5070', 'scheda video'],
+    }),
+    pcPart({
+      id: 'pc-rtx-5060ti',
+      title: 'NVIDIA GeForce RTX 5060 Ti',
+      subtitle: 'GPU fascia media. Verifica stock e prezzo sul negozio.',
+      imageTone: '#5a8f00',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=RTX+5060+Ti'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=RTX%205060%20Ti'),
+      ],
+      tags: ['pc', 'GPU', 'NVIDIA', 'RTX', '5060', '5060ti', 'scheda video'],
+    }),
+    pcPart({
+      id: 'pc-rtx-5080',
+      title: 'NVIDIA GeForce RTX 5080',
+      subtitle: 'GPU alta. Monitora: i listini saltano in continuazione.',
+      imageTone: '#3d5c00',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=RTX+5080'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=RTX%205080'),
+      ],
+      tags: ['pc', 'GPU', 'NVIDIA', 'RTX', '5080', 'scheda video'],
+    }),
+    pcPart({
+      id: 'pc-rx-9070xt',
+      title: 'AMD Radeon RX 9070 XT',
+      subtitle: 'GPU RDNA 4. Prezzo dal negozio, non dal catalogo fermo.',
+      imageTone: '#ed1c24',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=RX+9070+XT'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=9070%20XT'),
+      ],
+      tags: ['pc', 'GPU', 'AMD', 'Radeon', '9070', '9070xt', 'scheda video'],
+    }),
+    pcPart({
+      id: 'pc-corsair-veng-ddr5-32',
+      title: 'Corsair Vengeance DDR5 32GB',
+      subtitle: 'Kit 2x16 6000 MHz, DIMM desktop. Alert sul tuo prezzo.',
+      imageTone: '#ffd700',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Corsair+Vengeance+DDR5+32GB+6000'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Vengeance%20DDR5%2032GB'),
+      ],
+      tags: ['pc', 'RAM', 'DDR5', '32GB', 'DIMM', 'Corsair', 'Vengeance', '6000'],
+    }),
+    pcPart({
+      id: 'pc-gskill-ddr5-32',
+      title: 'G.Skill Trident Z5 DDR5 32GB',
+      subtitle: 'Kit 2x16 desktop. Niente street price inventato.',
+      imageTone: '#c0c0c0',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=G.Skill+Trident+Z5+DDR5+32GB'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Trident%20Z5%2032GB'),
+      ],
+      tags: ['pc', 'RAM', 'DDR5', '32GB', 'DIMM', 'G.Skill', 'Trident'],
+    }),
+    pcPart({
+      id: 'pc-kingston-ddr5-64',
+      title: 'Kingston Fury Beast DDR5 64GB',
+      subtitle: 'Kit 2x32 desktop. Monitora quando scende.',
+      imageTone: '#1a1a2e',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Kingston+Fury+Beast+DDR5+64GB'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Fury%20Beast%20DDR5%2064'),
+      ],
+      tags: ['pc', 'RAM', 'DDR5', '64GB', 'DIMM', 'Kingston', 'Fury'],
+    }),
+    pcPart({
+      id: 'pc-msi-b650-tomahawk',
+      title: 'MSI MAG B650 Tomahawk WiFi',
+      subtitle: 'Scheda madre AM5. Prezzo dal negozio.',
+      imageTone: '#c8102e',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=MSI+B650+Tomahawk+WiFi'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=B650%20Tomahawk'),
+      ],
+      tags: ['pc', 'MOBO', 'MSI', 'B650', 'AM5', 'scheda madre', 'wifi'],
+    }),
+    pcPart({
+      id: 'pc-asus-tuf-b650',
+      title: 'ASUS TUF Gaming B650-PLUS WiFi',
+      subtitle: 'Scheda madre AM5 TUF. Apri e monitora.',
+      imageTone: '#d4a017',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=ASUS+TUF+B650-PLUS'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=TUF%20B650-PLUS'),
+      ],
+      tags: ['pc', 'MOBO', 'ASUS', 'B650', 'AM5', 'scheda madre', 'wifi'],
+    }),
+    pcPart({
+      id: 'pc-gigabyte-z890',
+      title: 'Gigabyte Z890 Aorus Elite WiFi7',
+      subtitle: 'Scheda madre LGA1851. Listino variabile.',
+      imageTone: '#f4a261',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Gigabyte+Z890+Aorus+Elite'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Z890%20Aorus'),
+      ],
+      tags: ['pc', 'MOBO', 'Gigabyte', 'Z890', 'LGA1851', 'scheda madre', 'wifi'],
+    }),
+    pcPart({
+      id: 'pc-msi-z790',
+      title: 'MSI MAG Z790 Tomahawk WiFi',
+      subtitle: 'Scheda madre LGA1700. Per i 14600K / 14900K.',
+      imageTone: '#9b2226',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=MSI+Z790+Tomahawk'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Z790%20Tomahawk'),
+      ],
+      tags: ['pc', 'MOBO', 'MSI', 'Z790', 'LGA1700', 'scheda madre', 'wifi'],
+    }),
+    pcPart({
+      id: 'pc-corsair-rm750e',
+      title: 'Corsair RM750e',
+      subtitle: 'Alimentatore 750W gold, modulare. Monitora il listino.',
+      imageTone: '#f2c14e',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Corsair+RM750e'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=RM750e'),
+      ],
+      tags: ['pc', 'PSU', 'Corsair', '750W', 'RM750e', 'alimentatore', 'gold'],
+    }),
+    pcPart({
+      id: 'pc-seasonic-focus-850',
+      title: 'Seasonic Focus GX-850',
+      subtitle: 'Alimentatore 850W. Prezzo dal negozio.',
+      imageTone: '#1d3557',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Seasonic+Focus+GX-850'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Focus%20GX-850'),
+      ],
+      tags: ['pc', 'PSU', 'Seasonic', '850W', 'alimentatore', 'gold'],
+    }),
+    pcPart({
+      id: 'pc-corsair-rm1000e',
+      title: 'Corsair RM1000e',
+      subtitle: 'Alimentatore 1000W per GPU alte. Alert sul tuo prezzo.',
+      imageTone: '#e9c46a',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Corsair+RM1000e'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=RM1000e'),
+      ],
+      tags: ['pc', 'PSU', 'Corsair', '1000W', 'RM1000e', 'alimentatore'],
+    }),
+    pcPart({
+      id: 'pc-noctua-nhd15',
+      title: 'Noctua NH-D15',
+      subtitle: 'Dissipatore ad aria dual-tower. Classico, listino da verificare.',
+      imageTone: '#a67c52',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Noctua+NH-D15'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=NH-D15'),
+      ],
+      tags: ['pc', 'COOLER', 'Noctua', 'NH-D15', 'aria', 'dissipatore'],
+    }),
+    pcPart({
+      id: 'pc-thermalright-pa120',
+      title: 'Thermalright Peerless Assassin 120',
+      subtitle: 'Dissipatore aria, tanto per i soldi. Prezzo solo se il negozio risponde.',
+      imageTone: '#8d99ae',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Thermalright+Peerless+Assassin+120'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Peerless%20Assassin'),
+      ],
+      tags: ['pc', 'COOLER', 'Thermalright', 'PA120', 'aria', 'dissipatore'],
+    }),
+    pcPart({
+      id: 'pc-arctic-lf3-360',
+      title: 'Arctic Liquid Freezer III 360',
+      subtitle: 'AIO 360 mm. Monitora quando scende.',
+      imageTone: '#00a3e0',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Arctic+Liquid+Freezer+III+360'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Liquid%20Freezer%20III%20360'),
+      ],
+      tags: ['pc', 'COOLER', 'Arctic', 'AIO', '360', 'liquido', 'dissipatore'],
+    }),
+    pcPart({
+      id: 'pc-wd-sn850x-2tb',
+      title: 'WD Black SN850X 2TB',
+      subtitle: 'SSD NVMe PCIe 4.0. Per il PC, non un disco NAS.',
+      imageTone: '#000000',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=WD+Black+SN850X+2TB'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=SN850X%202TB'),
+      ],
+      tags: ['pc', 'SSD', 'NVMe', '2TB', 'WD', 'SN850X'],
+    }),
+    pcPart({
+      id: 'pc-crucial-t500-2tb',
+      title: 'Crucial T500 2TB',
+      subtitle: 'SSD NVMe. Listino da negozio, niente cifra inventata.',
+      imageTone: '#2b2d42',
+      merchants: [
+        shop('Amazon', 'https://www.amazon.it/s?k=Crucial+T500+2TB'),
+        shop('PcComponentes', 'https://www.pccomponentes.it/buscar/?query=Crucial%20T500%202TB'),
+      ],
+      tags: ['pc', 'SSD', 'NVMe', '2TB', 'Crucial', 'T500'],
+    }),
+  ]
 }
 
 export const deals: Deal[] = [
@@ -277,7 +623,7 @@ export const deals: Deal[] = [
     id: 'nas-crucial-32ram',
     title: 'Crucial DDR4 32GB SODIMM',
     subtitle: 'Kit 2x16 3200 MHz. Amazon.it intorno ai 239–249 €, non a 50 €.',
-    category: 'nas',
+    category: 'pc',
     currentPrice: 239,
     normalPrice: 239,
     avgPrice: 255,
@@ -297,8 +643,10 @@ export const deals: Deal[] = [
         shipping: 'CT2K16G4SFRA32A',
       },
     ],
-    tags: ['RAM', 'SODIMM', '32GB', 'DDR4'],
+    tags: ['pc', 'RAM', 'SODIMM', '32GB', 'DDR4'],
   }),
+
+  ...pcParts(),
 
   item({
     id: 'sw-libreoffice',
@@ -770,13 +1118,15 @@ export const kindLabel: Record<DealKind, string> = {
 export const categoryLabel: Record<Category, string> = {
   software: 'Software',
   nas: 'NAS / Storage',
-  steam: 'Steam / PC',
+  pc: 'Componenti PC',
+  steam: 'Steam / giochi',
   android: 'Android',
   ios: 'iOS',
 }
 
 const TONE: Record<Category, string> = {
   nas: '#1d3557',
+  pc: '#3d2b1f',
   software: '#2b579a',
   steam: '#1b2838',
   android: '#1b7a4a',
@@ -825,8 +1175,19 @@ export function guessCategory(query: string): Category {
   if (/\b(office|windows|adobe|antivirus|licenza|saas|software|libreoffice)\b/.test(t)) {
     return 'software'
   }
-  if (/\b(nas|ugreen|synology|qnap|terramaster|seagate|ironwolf|nasync|dxp|hdd|ssd|nvme|wd)\b/.test(t)) {
+  if (
+    /\b(cpu|gpu|ryzen|radeon|rtx|geforce|case|cabinet|mobo|motherboard|psu|ddr5|ddr4|cooler|dissipatore|am5|lga1700|lga1851|alimentatore|processore)\b/.test(
+      t,
+    ) ||
+    /\b(scheda madre|scheda video|componenti)\b/.test(t)
+  ) {
+    return 'pc'
+  }
+  if (/\b(nas|ugreen|synology|qnap|terramaster|seagate|ironwolf|nasync|dxp)\b/.test(t)) {
     return 'nas'
+  }
+  if (/\b(ram|ssd|nvme|hdd|wd)\b/.test(t)) {
+    return /\b(nas|red plus|ironwolf)\b/.test(t) ? 'nas' : 'pc'
   }
   return 'nas'
 }
@@ -844,6 +1205,9 @@ function lookupSubtitle(category: Category, title: string) {
   }
   if (category === 'software') {
     return `Prodotto non in catalogo: apri i negozi e monitora il listino. Niente prezzo inventato.`
+  }
+  if (category === 'pc') {
+    return `Componente non (ancora) in catalogo. Apri Amazon/PcComponentes e monitora “${q}”: niente prezzo inventato.`
   }
   return `Anche se non è in offerta, lo cerchiamo nei negozi. Apri Amazon/sito e attiva l’alert sul tuo prezzo.`
 }
@@ -879,6 +1243,14 @@ export function lookupMerchants(title: string, category: Category): Merchant[] {
       { name: 'Amazon', price: 0, url: `https://www.amazon.it/s?k=${q}` },
       { name: 'Microsoft', price: 0, url: `https://www.microsoft.com/it-it/search/explore?q=${q}` },
       { name: 'Google', price: 0, url: `https://www.google.com/search?q=${q}+software+ufficiale` },
+    ]
+  }
+  if (category === 'pc') {
+    return [
+      { name: 'Amazon', price: 0, url: `https://www.amazon.it/s?k=${q}` },
+      { name: 'PcComponentes', price: 0, url: `https://www.pccomponentes.it/buscar/?query=${q}` },
+      { name: 'eBay', price: 0, url: `https://www.ebay.it/sch/i.html?_nkw=${q}` },
+      { name: 'LDLC', price: 0, url: `https://www.ldlc.com/it-it/search/${q}/` },
     ]
   }
   return [

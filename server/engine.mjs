@@ -128,8 +128,9 @@ export async function liveSearchExtras(query, category) {
     /\b(steam|gioco|giochi|game|hades|stardew|balatro|witcher|portal)\b/i.test(q)
   const amazonish =
     category === 'nas' ||
+    category === 'pc' ||
     category === 'software' ||
-    /\b(nas|ugreen|synology|qnap|hdd|ssd|wd|nasync|dxp)\b/i.test(q) ||
+    /\b(nas|ugreen|synology|qnap|hdd|ssd|wd|nasync|dxp|cpu|gpu|ryzen|rtx|ram|case)\b/i.test(q) ||
     category === 'all'
 
   const found = []
@@ -173,7 +174,7 @@ export async function liveSearchExtras(query, category) {
     }
   }
 
-  if ((amazonish && !steamish) || category === 'nas') {
+  if ((amazonish && !steamish) || category === 'nas' || category === 'pc') {
     const key = `amz:${q.toLowerCase()}`
     if (!recently(key, 10 * 60 * 1000)) {
       try {

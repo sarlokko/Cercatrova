@@ -1,5 +1,7 @@
 /** Metadati noti. I prezzi NON stanno qui: arrivano dai collector. */
 
+import { PC_SEED_PRODUCTS } from './catalog-pc.mjs'
+
 export const SEED_PRODUCTS = [
   {
     id: 'nas-ugreen-dxp2800',
@@ -90,8 +92,8 @@ export const SEED_PRODUCTS = [
     id: 'nas-crucial-32ram',
     title: 'Crucial DDR4 32GB SODIMM',
     subtitle: 'Kit 2x16 3200 MHz.',
-    category: 'nas',
-    tags: ['RAM', 'SODIMM', '32GB', 'DDR4'],
+    category: 'pc',
+    tags: ['pc', 'RAM', 'SODIMM', '32GB', 'DDR4'],
     imageTone: '#2b2d42',
     listings: [
       {
@@ -339,4 +341,5 @@ export const SEED_PRODUCTS = [
       },
     ],
   },
+  ...PC_SEED_PRODUCTS,
 ]

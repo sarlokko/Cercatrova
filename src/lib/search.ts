@@ -39,7 +39,13 @@ const STOP = new Set(['per', 'del', 'della', 'dei', 'delle', 'con', 'una', 'uno'
 const GROUPS: string[][] = [
   ['hdd', 'harddisk', 'disco', 'rigido', 'ironwolf', 'cmr'],
   ['ssd', 'nvme'],
-  ['ram', 'memoria', 'sodimm', 'ddr', 'ddr4', 'crucial'],
+  ['ram', 'memoria', 'sodimm', 'dimm', 'ddr', 'ddr4', 'ddr5', 'crucial'],
+  ['cpu', 'processore', 'ryzen', 'intel'],
+  ['gpu', 'rtx', 'radeon', 'geforce'],
+  ['case', 'cabinet', 'torre', 'chassis'],
+  ['mobo', 'motherboard', 'b650', 'z790', 'z890'],
+  ['psu', 'alimentatore'],
+  ['cooler', 'dissipatore', 'aio'],
   ['nas', 'synology', 'qnap', 'terramaster', 'ugreen', 'ugos', 'nasync', 'storage', 'bay', 'ds224'],
   ['ugreen', 'ugos', 'nasync', 'dxp', 'dxp2800', '2800', 'dxp4800', '4800'],
   ['gratis', 'free', 'zero', 'omaggio'],
@@ -161,8 +167,10 @@ export function searchDeals(filters: SearchFilters, source: Deal[] = deals): Dea
 
 export const genericSuggestions = [
   { label: 'UGREEN NAS', query: 'ugreen 2800', category: 'nas' as const },
+  { label: 'RAM DDR5', query: 'ram ddr5 32gb', category: 'pc' as const },
+  { label: 'CPU Ryzen', query: 'ryzen 7800x3d', category: 'pc' as const },
+  { label: 'GPU RTX', query: 'rtx 5070', category: 'pc' as const },
   { label: 'HDD NAS', query: 'hdd nas', category: 'nas' as const },
-  { label: 'SSD NVMe', query: 'ssd nvme', category: 'nas' as const },
   { label: 'Steam in sconto', query: 'steam sconto', category: 'steam' as const },
   { label: 'App Android', query: 'android a pagamento', category: 'android' as const },
   { label: 'App iOS', query: 'ios a pagamento', category: 'ios' as const },

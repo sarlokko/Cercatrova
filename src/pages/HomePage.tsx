@@ -24,7 +24,7 @@ export function HomePage() {
           <article className="step">
             <div className="step__n">01</div>
             <h3>Scegli</h3>
-            <p>Categoria, marca, tipo, quantità. Come al banco: “RAM? DDR5? 32 giga?”</p>
+            <p>NAS o componenti: case, CPU, GPU, RAM. Poi marca, tipo, quantità.</p>
           </article>
           <article className="step">
             <div className="step__n">02</div>

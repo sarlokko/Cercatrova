@@ -134,8 +134,14 @@ CREATE INDEX IF NOT EXISTS listings_product ON listings(product_id);
 `)
 
 const insertProduct = db.prepare(`
-INSERT OR IGNORE INTO products (id, title, subtitle, category, tags, image_tone, source, free, created_at)
+INSERT INTO products (id, title, subtitle, category, tags, image_tone, source, free, created_at)
 VALUES (?, ?, ?, ?, ?, ?, 'catalog', ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+  title = excluded.title,
+  subtitle = excluded.subtitle,
+  category = excluded.category,
+  tags = excluded.tags,
+  image_tone = excluded.image_tone
 `)
 const insertListing = db.prepare(`
 INSERT OR IGNORE INTO listings (id, product_id, store, url, external_id)
@@ -170,6 +176,7 @@ export function upsertProduct(p) {
     ON CONFLICT(id) DO UPDATE SET
       title = excluded.title,
       subtitle = excluded.subtitle,
+      category = excluded.category,
       tags = excluded.tags
   `).run(
     p.id,

@@ -204,6 +204,7 @@ export function MonitorPage() {
             >
               <option value="all">Tutte</option>
               <option value="nas">NAS / Storage</option>
+              <option value="pc">Componenti PC</option>
               <option value="software">Software</option>
               <option value="steam">Steam / Epic / GOG</option>
               <option value="android">Android (Play Store)</option>
