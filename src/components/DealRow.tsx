@@ -26,7 +26,7 @@ type Props = {
 export function DealRow({ deal, tone }: Props) {
   return (
     <Link
-      to={`/prodotto/${deal.id}`}
+      to={`/prodotto/${encodeURIComponent(deal.id)}`}
       className={`deal-row${tone === 'wait' ? ' deal-row--wait' : ''}${tone === 'now' ? ' deal-row--now' : ''}`}
     >
       <div className="deal-thumb" style={{ background: deal.imageTone }}>

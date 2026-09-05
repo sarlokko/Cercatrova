@@ -1550,11 +1550,20 @@ export function parseLookupId(id: string): { category: Category; title: string }
 }
 
 export function getDeal(id: string) {
-  const found = deals.find((d) => d.id === id)
+  let raw = id
+  try {
+    raw = decodeURIComponent(id).trim()
+  } catch {
+    raw = id.trim()
+  }
+  const found = deals.find((d) => d.id === raw || d.id === id)
   if (found) return found
-  const parsed = parseLookupId(id)
+  if (/gta\s*6|gta-?vi|9p3h4968grsm|grand-theft-auto-vi/i.test(raw)) {
+    return deals.find((d) => d.id === 'game-gta6')
+  }
+  const parsed = parseLookupId(raw)
   if (!parsed) return undefined
-  return makeLookupDeal(parsed.title, parsed.category, id)
+  return makeLookupDeal(parsed.title, parsed.category, raw)
 }
 
 export function formatCheckedAt(iso = PRICES_CHECKED_AT) {

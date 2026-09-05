@@ -64,14 +64,24 @@ export async function apiSearch(filters: SearchFilters): Promise<Deal[]> {
   }
 }
 
-export async function apiProduct(id: string): Promise<Deal | undefined> {
+function decodeProductId(id: string) {
   try {
-    const data = await req<{ product: Deal }>(`/api/products/${encodeURIComponent(id)}`)
-    return data.product ? withVerdict(data.product) : undefined
+    return decodeURIComponent(id).trim()
   } catch {
-    const local = getDeal(id)
-    return local ? withVerdict(local) : undefined
+    return id.trim()
   }
+}
+
+export async function apiProduct(id: string): Promise<Deal | undefined> {
+  const raw = decodeProductId(id)
+  try {
+    const data = await req<{ product: Deal }>(`/api/products/${encodeURIComponent(raw)}`)
+    if (data.product) return withVerdict(data.product)
+  } catch {
+    /* catalogo locale */
+  }
+  const local = getDeal(raw)
+  return local ? withVerdict(local) : undefined
 }
 
 export async function apiRefresh(id: string): Promise<Deal | undefined> {

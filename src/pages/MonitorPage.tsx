@@ -135,7 +135,7 @@ export function MonitorPage() {
         <p>
           La cerca guidata sta in home. Qui salvi l’alert sul server:{' '}
           {me ? `${me.used}/${me.limit}` : '…'} slot
-          {me?.telegram.linked ? ' · Telegram collegato' : ''}.
+          {me?.telegram?.linked ? ' · Telegram collegato' : ''}.
         </p>
       </div>
 
@@ -260,7 +260,7 @@ export function MonitorPage() {
             </div>
           ) : null}
           <p className="field-hint">
-            {me?.telegram.configured
+            {me?.telegram?.configured
               ? 'Il bot è configurato sul server. Premi Avvia in Telegram per associare la chat.'
               : 'Imposta TELEGRAM_BOT_TOKEN nel compose del NAS per le notifiche vere.'}
           </p>
@@ -324,7 +324,7 @@ export function MonitorPage() {
             <div key={w.id} className="watch-item">
               <div>
                 <strong>
-                  {w.productId ? <Link to={`/prodotto/${w.productId}`}>{w.title}</Link> : w.title}
+                  {w.productId ? <Link to={`/prodotto/${encodeURIComponent(w.productId)}`}>{w.title}</Link> : w.title}
                 </strong>
                 <span>
                   {w.query ? `${w.query} · ` : ''}
@@ -354,3 +354,5 @@ export function MonitorPage() {
     </div>
   )
 }
+
+export default MonitorPage

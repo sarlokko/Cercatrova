@@ -17,7 +17,14 @@ import { merchantOfferUrl } from '../lib/offers'
 import { getTelegramPrefs, normalizeTelegramUser, saveTelegramPrefs } from '../lib/watchlist'
 
 export function ProductPage() {
-  const { id = '' } = useParams()
+  const { id: rawId = '' } = useParams()
+  const id = (() => {
+    try {
+      return decodeURIComponent(rawId).trim()
+    } catch {
+      return rawId.trim()
+    }
+  })()
   const prefs = getTelegramPrefs()
   const [deal, setDeal] = useState<Deal | undefined>()
   const [loading, setLoading] = useState(true)

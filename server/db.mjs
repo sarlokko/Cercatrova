@@ -251,6 +251,41 @@ export function getProductRow(id) {
   return db.prepare(`SELECT * FROM products WHERE id = ?`).get(id)
 }
 
+export function resolveProductId(id) {
+  const raw = decodeURIComponent(String(id || '')).trim()
+  if (!raw) return null
+  if (getProductRow(raw)) return raw
+  const stripped = raw.replace(/^(xbox|steam|gog|ios|and|amz)-/i, '')
+  const viaExt = productIdByExternal('', stripped) || productIdByExternal('', raw)
+  if (viaExt) return viaExt
+  if (stripped && stripped.length >= 8) {
+    const urlRow = db
+      .prepare(`SELECT product_id FROM listings WHERE url LIKE ? LIMIT 1`)
+      .get(`%${stripped}%`)
+    if (urlRow?.product_id) return urlRow.product_id
+  }
+  if (/gta|grand-theft-auto|9p3h4968|9nl3wwnzlzzn/i.test(raw) && getProductRow('game-gta6')) {
+    return 'game-gta6'
+  }
+  const slug = raw
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  const rows = listCatalog('all')
+  const hit = rows.find((r) => {
+    const titleSlug = String(r.title)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+    return r.id === slug || titleSlug === slug || titleSlug.includes(slug) && slug.length >= 8
+  })
+  return hit?.id ?? null
+}
+
 export function productIdByExternal(storeLike, externalId) {
   if (!externalId) return null
   const id = String(externalId)

@@ -10,6 +10,7 @@ import {
   listWatches,
   PLUS_WATCH_LIMIT,
   removeWatchRow,
+  resolveProductId,
   setDevicePlan,
   telegramForDevice,
   watchLimit,
@@ -78,13 +79,15 @@ app.get('/api/search', async (c) => {
 })
 
 app.get('/api/products/:id', (c) => {
-  const product = assembleProduct(c.req.param('id'))
+  const id = resolveProductId(c.req.param('id'))
+  const product = id ? assembleProduct(id) : null
   if (!product) return c.json({ error: 'not_found' }, 404)
   return c.json({ product })
 })
 
 app.post('/api/products/:id/refresh', async (c) => {
-  const product = await refreshProduct(c.req.param('id'), { force: true })
+  const id = resolveProductId(c.req.param('id')) || c.req.param('id')
+  const product = await refreshProduct(id, { force: true })
   if (!product) return c.json({ error: 'not_found' }, 404)
   return c.json({ product })
 })
