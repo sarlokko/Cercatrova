@@ -53,6 +53,7 @@ const GROUPS: string[][] = [
   ['ai', 'crediti', 'midjourney'],
   ['mac', 'macos', 'cleanmymac'],
   ['gioco', 'giochi', 'game', 'games', 'steam', 'epic', 'gog', 'humble', 'videogioco', 'playstation', 'xbox', 'prevendita', 'preordine', 'preorder'],
+  ['gta', 'gtavi'],
   ['android', 'play', 'playstore'],
   ['ios', 'iphone', 'ipad', 'appstore'],
   ['coupon', 'sconto', 'promo', 'offerta'],
@@ -72,6 +73,11 @@ function expand(query: string) {
   for (const t of raw) {
     const aliases = ALIAS.get(t)
     if (aliases) aliases.forEach((a) => out.add(a))
+  }
+  if (raw.includes('gta') || raw.includes('gtavi')) {
+    out.add('grand')
+    out.add('theft')
+    out.add('auto')
   }
   return { raw, expanded: [...out] }
 }

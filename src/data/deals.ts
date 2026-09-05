@@ -1413,7 +1413,7 @@ export function guessCategory(query: string): Category {
   if (/\b(ios|iphone|ipad|app store|appstore)\b/.test(t)) return 'ios'
   if (/\b(android|play store|google play|playstore)\b/.test(t)) return 'android'
   if (
-    /\b(steam|epic|gog|gioco|giochi|game|games|humble|videogioco|playstation|xbox|ps5|ps4|prevendita|preordine|preorder)\b/.test(
+    /\b(steam|epic|gog|gioco|giochi|game|games|humble|videogioco|playstation|xbox|ps5|ps4|prevendita|preordine|preorder|gta)\b/.test(
       t,
     )
   ) {

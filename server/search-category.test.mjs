@@ -17,6 +17,7 @@ describe('guessCategory', () => {
   })
 
   it('mette PlayStation, Xbox e le prevendite tra i giochi', () => {
+    assert.equal(guessCategory('gta vi'), 'steam')
     assert.equal(guessCategory('gta vi prevendita'), 'steam')
     assert.equal(guessCategory('playstation store'), 'steam')
     assert.equal(guessCategory('xbox series'), 'steam')

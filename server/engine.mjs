@@ -313,6 +313,8 @@ export async function liveSearchExtras(query, category) {
   const found = []
 
   if (wantGames) {
+    await Promise.all([
+    (async () => {
     try {
       const gogHits = await gogSearch(q)
       for (const hit of gogHits.slice(0, 3)) {
@@ -346,12 +348,18 @@ export async function liveSearchExtras(query, category) {
     } catch {
       /* GOG down */
     }
+    })(),
+    (async () => {
     try {
       const hits = await steamSearch(q)
       const qTokens = q
         .toLowerCase()
         .split(/\s+/)
-        .filter((t) => t.length > 2 && !/^(prevendita|preordine|preorder|playstation|xbox)$/.test(t))
+        .filter(
+          (t) =>
+            t.length > 1 &&
+            !/^(prevendita|preordine|preorder|playstation|xbox|steam|epic|gog)$/.test(t),
+        )
       for (const hit of hits) {
         if (hit.price == null && hit.price !== 0) continue
         const title = String(hit.title || '').toLowerCase()
@@ -386,6 +394,8 @@ export async function liveSearchExtras(query, category) {
     } catch {
       /* Steam down: ignora */
     }
+    })(),
+    (async () => {
     try {
       const xboxHits = await xboxSearch(q)
       for (const hit of xboxHits.slice(0, 3)) {
@@ -435,12 +445,14 @@ export async function liveSearchExtras(query, category) {
     } catch {
       /* Xbox down */
     }
+    })(),
+    ])
   }
 
   if (wantIos) {
     try {
-      const gamesOnly = /\b(gioco|giochi|game|games)\b/i.test(q)
-      const hits = await itunesSearch(q, { gamesOnly })
+      let hits = await itunesSearch(q, { gamesOnly: true })
+      if (!hits.length) hits = await itunesSearch(q, { gamesOnly: false })
       for (const hit of hits.slice(0, 4)) {
         const id =
           productIdByExternal('App Store', hit.externalId) ||

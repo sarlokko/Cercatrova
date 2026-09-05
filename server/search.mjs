@@ -19,6 +19,7 @@ const GROUPS = [
   ['ugreen', 'ugos', 'nasync', 'dxp', 'dxp2800', '2800', 'dxp4800', '4800'],
   ['gratis', 'free', 'zero'],
   ['gioco', 'giochi', 'game', 'games', 'steam', 'epic', 'gog', 'playstation', 'xbox', 'prevendita', 'preordine', 'preorder'],
+  ['gta', 'gtavi'],
   ['android', 'play', 'playstore'],
   ['ios', 'iphone', 'ipad', 'appstore'],
 ]
@@ -49,6 +50,11 @@ function expand(query) {
   const raw = tokens(query)
   const out = new Set(raw)
   for (const t of raw) (ALIAS.get(t) || []).forEach((a) => out.add(a))
+  if (raw.includes('gta') || raw.includes('gtavi')) {
+    out.add('grand')
+    out.add('theft')
+    out.add('auto')
+  }
   return { raw, expanded: [...out] }
 }
 
@@ -87,7 +93,7 @@ export function guessCategory(query) {
   if (/\b(ios|iphone|ipad|app store)\b/.test(t)) return 'ios'
   if (/\b(android|play store)\b/.test(t)) return 'android'
   if (
-    /\b(steam|epic|gog|gioco|giochi|game|games|humble|videogioco|playstation|xbox|ps5|ps4|prevendita|preordine|preorder)\b/.test(
+    /\b(steam|epic|gog|gioco|giochi|game|games|humble|videogioco|playstation|xbox|ps5|ps4|prevendita|preordine|preorder|gta)\b/.test(
       t,
     )
   ) {

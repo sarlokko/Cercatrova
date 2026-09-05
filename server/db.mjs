@@ -253,12 +253,15 @@ export function getProductRow(id) {
 
 export function productIdByExternal(storeLike, externalId) {
   if (!externalId) return null
+  const id = String(externalId)
   const row = db
     .prepare(
       `SELECT product_id FROM listings WHERE external_id = ? AND store LIKE ? LIMIT 1`,
     )
-    .get(String(externalId), `%${storeLike}%`)
-  return row?.product_id ?? null
+    .get(id, `%${storeLike}%`)
+  if (row?.product_id) return row.product_id
+  const any = db.prepare(`SELECT product_id FROM listings WHERE external_id = ? LIMIT 1`).get(id)
+  return any?.product_id ?? null
 }
 
 export function listCatalog(category = 'all', { seededOnly = false } = {}) {
