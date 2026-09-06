@@ -40,6 +40,61 @@ export function buildCategory(path: GuideChoice[]): 'all' | Category {
   return 'all'
 }
 
+/** Generi principali degli store, non una selezione a tre. */
+export const MAIN_GAME_GENRES: { id: string; label: string; query: string }[] = [
+  { id: 'action', label: 'Azione', query: 'action' },
+  { id: 'adventure', label: 'Avventura', query: 'adventure' },
+  { id: 'rpg', label: 'RPG', query: 'rpg' },
+  { id: 'shooter', label: 'Sparatutto', query: 'shooter' },
+  { id: 'strategy', label: 'Strategia', query: 'strategy' },
+  { id: 'sim', label: 'Simulazione', query: 'simulation' },
+  { id: 'sport', label: 'Sport', query: 'sport' },
+  { id: 'racing', label: 'Corse', query: 'racing' },
+  { id: 'horror', label: 'Horror', query: 'horror' },
+  { id: 'survival', label: 'Survival', query: 'survival' },
+  { id: 'puzzle', label: 'Puzzle', query: 'puzzle' },
+  { id: 'fighting', label: 'Picchiaduro', query: 'fighting' },
+  { id: 'platform', label: 'Piattaforma', query: 'platformer' },
+  { id: 'indie', label: 'Indie', query: 'indie' },
+  { id: 'openworld', label: 'Mondo aperto', query: 'open world' },
+]
+
+function genreChoices(prefix = ''): GuideChoice[] {
+  const p = prefix ? `${prefix}-` : ''
+  return [
+    ...MAIN_GAME_GENRES.map((g) => ({
+      id: `${p}${g.id}`,
+      label: g.label,
+      query: g.query,
+    })),
+    { id: `${p}any`, label: 'Qualsiasi', hint: 'senza filtro di genere', query: 'gioco' },
+    { id: `${p}title`, label: 'Ho già il titolo', hint: 'lo scrivo sotto', query: '' },
+  ]
+}
+
+function gameKindStep(aside: string): GuideStep {
+  return {
+    id: 'game-kind',
+    question: 'Che genere ti va?',
+    aside: `${aside} Oppure tocca Qualsiasi e cerca in generale.`,
+    freeLabel: 'Ho già il titolo',
+    choices: genreChoices(),
+  }
+}
+
+function mobileGameStep(store: 'android' | 'ios'): GuideStep {
+  return {
+    id: `${store}-game`,
+    question: 'Che genere ti va?',
+    aside:
+      store === 'android'
+        ? 'Stessi generi del PC. Guardo il Play Store, senza prezzo inventato. Qualsiasi = ricerca generale.'
+        : 'Stessi generi del PC. Guardo l’App Store, distinto da Android. Qualsiasi = ricerca generale.',
+    freeLabel: 'Ho già il titolo',
+    choices: genreChoices(`${store}-g`),
+  }
+}
+
 export const GUIDE_ROOT: GuideStep = {
   id: 'root',
   question: 'Cosa stai cercando?',
@@ -238,61 +293,6 @@ export const GUIDE_ROOT: GuideStep = {
       },
     },
   ],
-}
-
-/** Generi principali degli store, non una selezione a tre. */
-export const MAIN_GAME_GENRES: { id: string; label: string; query: string }[] = [
-  { id: 'action', label: 'Azione', query: 'action' },
-  { id: 'adventure', label: 'Avventura', query: 'adventure' },
-  { id: 'rpg', label: 'RPG', query: 'rpg' },
-  { id: 'shooter', label: 'Sparatutto', query: 'shooter' },
-  { id: 'strategy', label: 'Strategia', query: 'strategy' },
-  { id: 'sim', label: 'Simulazione', query: 'simulation' },
-  { id: 'sport', label: 'Sport', query: 'sport' },
-  { id: 'racing', label: 'Corse', query: 'racing' },
-  { id: 'horror', label: 'Horror', query: 'horror' },
-  { id: 'survival', label: 'Survival', query: 'survival' },
-  { id: 'puzzle', label: 'Puzzle', query: 'puzzle' },
-  { id: 'fighting', label: 'Picchiaduro', query: 'fighting' },
-  { id: 'platform', label: 'Piattaforma', query: 'platformer' },
-  { id: 'indie', label: 'Indie', query: 'indie' },
-  { id: 'openworld', label: 'Mondo aperto', query: 'open world' },
-]
-
-function genreChoices(prefix = ''): GuideChoice[] {
-  const p = prefix ? `${prefix}-` : ''
-  return [
-    ...MAIN_GAME_GENRES.map((g) => ({
-      id: `${p}${g.id}`,
-      label: g.label,
-      query: g.query,
-    })),
-    { id: `${p}any`, label: 'Qualsiasi', hint: 'senza filtro di genere', query: 'gioco' },
-    { id: `${p}title`, label: 'Ho già il titolo', hint: 'lo scrivo sotto', query: '' },
-  ]
-}
-
-function gameKindStep(aside: string): GuideStep {
-  return {
-    id: 'game-kind',
-    question: 'Che genere ti va?',
-    aside: `${aside} Oppure tocca Qualsiasi e cerca in generale.`,
-    freeLabel: 'Ho già il titolo',
-    choices: genreChoices(),
-  }
-}
-
-function mobileGameStep(store: 'android' | 'ios'): GuideStep {
-  return {
-    id: `${store}-game`,
-    question: 'Che genere ti va?',
-    aside:
-      store === 'android'
-        ? 'Stessi generi del PC. Guardo il Play Store, senza prezzo inventato. Qualsiasi = ricerca generale.'
-        : 'Stessi generi del PC. Guardo l’App Store, distinto da Android. Qualsiasi = ricerca generale.',
-    freeLabel: 'Ho già il titolo',
-    choices: genreChoices(`${store}-g`),
-  }
 }
 
 function pcPartsStep(): GuideStep {
