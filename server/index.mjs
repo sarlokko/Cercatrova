@@ -16,8 +16,8 @@ const MIME = {
 let api = null
 let bootError = null
 
-function send(res, status, body, type = 'text/plain; charset=utf-8') {
-  res.writeHead(status, { 'content-type': type })
+function send(res, status, body, type = 'text/plain; charset=utf-8', extra = {}) {
+  res.writeHead(status, { 'content-type': type, ...extra })
   res.end(body)
 }
 
@@ -31,23 +31,32 @@ function sendStatic(req, res) {
   if (!existsSync(file)) {
     return send(res, 503, `Cercatrova in avvio. ${bootError || ''}`.trim())
   }
-  send(res, 200, readFileSync(file), MIME[extname(file)] || 'application/octet-stream')
+  const ext = extname(file)
+  const cache =
+    ext === '.html'
+      ? { 'cache-control': 'no-store' }
+      : url.startsWith('/assets/')
+        ? { 'cache-control': 'public, max-age=31536000, immutable' }
+        : { 'cache-control': 'no-cache' }
+  send(res, 200, readFileSync(file), MIME[ext] || 'application/octet-stream', cache)
 }
 
 const server = createServer((req, res) => {
   try {
-    if ((req.url || '').startsWith('/api/health')) {
+    if ((req.url || '').startsWith('/api/health') && !api) {
       return send(
         res,
         200,
         JSON.stringify({
           ok: true,
-          ready: Boolean(api),
+          ready: false,
           error: bootError,
           node: process.version,
           arch: process.arch,
+          commit: process.env.GIT_SHA || 'dev',
         }),
         'application/json',
+        { 'cache-control': 'no-store' },
       )
     }
     if (api) {

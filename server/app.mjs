@@ -20,6 +20,7 @@ import { assembleProduct } from './product.mjs'
 import { searchProducts } from './search.mjs'
 import { refreshWatched } from './alerts.mjs'
 import { storeHealth } from './collectors/guard.mjs'
+import { GIT_SHA, GIT_SHORT } from './lib/build-info.mjs'
 import { isDeviceId } from './lib/device-id.mjs'
 import { safeKeyEqual } from './lib/safe-equal.mjs'
 import {
@@ -59,17 +60,20 @@ function publicWatch(row) {
   }
 }
 
-app.get('/api/health', (c) =>
-  c.json({
+app.get('/api/health', (c) => {
+  c.header('Cache-Control', 'no-store')
+  return c.json({
     ok: true,
     ready: true,
     name: 'cercatrova',
     question: 'È questo il momento giusto per comprarlo?',
     telegram: botConfigured(),
     time: new Date().toISOString(),
+    commit: GIT_SHA,
+    version: GIT_SHORT,
     collectors: storeHealth(),
-  }),
-)
+  })
+})
 
 app.get('/api/search', async (c) => {
   const query = c.req.query('q') || ''
@@ -212,6 +216,15 @@ app.post('/api/collect', async (c) => {
 
 const dist = join(process.cwd(), 'dist')
 if (existsSync(dist)) {
+  app.use('/*', async (c, next) => {
+    await next()
+    const path = c.req.path
+    if (path === '/' || path.endsWith('.html')) {
+      c.header('Cache-Control', 'no-store')
+    } else if (path.startsWith('/assets/')) {
+      c.header('Cache-Control', 'public, max-age=31536000, immutable')
+    }
+  })
   app.use('/*', serveStatic({ root: './dist' }))
   app.get('/*', serveStatic({ path: './dist/index.html' }))
 }

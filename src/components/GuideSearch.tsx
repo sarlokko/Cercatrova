@@ -97,7 +97,12 @@ export function GuideSearch() {
 
   return (
     <section className="guide" aria-label="Guida alla ricerca">
-      <p className="guide__kicker">Il Cerca-Trova</p>
+      <p className="guide__kicker">
+        Il Cerca-Trova
+        {import.meta.env.VITE_GIT_SHA ? (
+          <span className="guide__build"> · {String(import.meta.env.VITE_GIT_SHA).slice(0, 7)}</span>
+        ) : null}
+      </p>
       <h1 className="guide__q" key={step.id}>
         {step.question}
       </h1>
