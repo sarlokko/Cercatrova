@@ -19,6 +19,9 @@ import { refreshCatalog, refreshProduct } from './engine.mjs'
 import { assembleProduct } from './product.mjs'
 import { searchProducts } from './search.mjs'
 import { refreshWatched } from './alerts.mjs'
+import { storeHealth } from './collectors/guard.mjs'
+import { isDeviceId } from './lib/device-id.mjs'
+import { safeKeyEqual } from './lib/safe-equal.mjs'
 import {
   botConfigured,
   createLinkToken,
@@ -31,13 +34,13 @@ export const app = new Hono()
 app.use('/api/*', cors())
 
 function deviceId(c) {
-  const id = c.req.header('x-device-id') || c.req.query('deviceId') || ''
-  return id.trim().slice(0, 80)
+  const id = String(c.req.header('x-device-id') || '').trim()
+  return isDeviceId(id) ? id.toLowerCase() : ''
 }
 
 function requireDevice(c) {
   const id = deviceId(c)
-  if (id.length < 8) return null
+  if (!id) return null
   return ensureDevice(id)
 }
 
@@ -64,6 +67,7 @@ app.get('/api/health', (c) =>
     question: 'È questo il momento giusto per comprarlo?',
     telegram: botConfigured(),
     time: new Date().toISOString(),
+    collectors: storeHealth(),
   }),
 )
 
@@ -116,7 +120,7 @@ app.post('/api/plus', async (c) => {
   const body = await c.req.json().catch(() => ({}))
   const key = String(body.key || '')
   const expected = process.env.PLUS_KEY || ''
-  if (!expected || key !== expected) {
+  if (!safeKeyEqual(key, expected)) {
     return c.json({ ok: false, error: 'codice non valido' }, 403)
   }
   setDevicePlan(device.id, 'plus')
@@ -199,7 +203,7 @@ app.post('/api/telegram/webhook', async (c) => {
 
 app.post('/api/collect', async (c) => {
   const secret = process.env.COLLECT_KEY
-  if (secret && c.req.header('x-collect-key') !== secret) {
+  if (secret && !safeKeyEqual(c.req.header('x-collect-key') || '', secret)) {
     return c.json({ error: 'forbidden' }, 403)
   }
   const result = await refreshWatched()
