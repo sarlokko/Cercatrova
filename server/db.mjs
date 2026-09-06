@@ -217,24 +217,35 @@ export function upsertListing(l) {
 
 export function recordPrice(listingIdValue, price, available = 1, currency = 'EUR') {
   const collectedAt = new Date().toISOString()
-  db.prepare(
-    `UPDATE listings SET last_price = ?, list_price = COALESCE(list_price, ?), available = ?, last_checked = ? WHERE id = ?`,
-  ).run(price, price, available, collectedAt, listingIdValue)
-  const last = db
-    .prepare(
-      `SELECT price FROM prices WHERE listing_id = ? ORDER BY collected_at DESC LIMIT 1`,
-    )
-    .get(listingIdValue)
-  if (!last || Number(last.price) !== Number(price)) {
+  db.exec('BEGIN')
+  try {
     db.prepare(
-      `INSERT INTO prices (listing_id, price, currency, available, collected_at) VALUES (?, ?, ?, ?, ?)`,
-    ).run(listingIdValue, price, currency, available, collectedAt)
-  } else {
-    db.prepare(
-      `UPDATE prices SET collected_at = ?, available = ? WHERE listing_id = ? AND price = ? AND id = (
+      `UPDATE listings SET last_price = ?, list_price = COALESCE(list_price, ?), available = ?, last_checked = ? WHERE id = ?`,
+    ).run(price, price, available, collectedAt, listingIdValue)
+    const last = db
+      .prepare(
+        `SELECT price FROM prices WHERE listing_id = ? ORDER BY collected_at DESC LIMIT 1`,
+      )
+      .get(listingIdValue)
+    if (!last || Number(last.price) !== Number(price)) {
+      db.prepare(
+        `INSERT INTO prices (listing_id, price, currency, available, collected_at) VALUES (?, ?, ?, ?, ?)`,
+      ).run(listingIdValue, price, currency, available, collectedAt)
+    } else {
+      db.prepare(
+        `UPDATE prices SET collected_at = ?, available = ? WHERE listing_id = ? AND price = ? AND id = (
         SELECT id FROM prices WHERE listing_id = ? ORDER BY collected_at DESC LIMIT 1
       )`,
-    ).run(collectedAt, available, listingIdValue, price, listingIdValue)
+      ).run(collectedAt, available, listingIdValue, price, listingIdValue)
+    }
+    db.exec('COMMIT')
+  } catch (err) {
+    try {
+      db.exec('ROLLBACK')
+    } catch {
+      /* già chiusa */
+    }
+    throw err
   }
   return collectedAt
 }

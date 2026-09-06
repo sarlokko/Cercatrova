@@ -51,4 +51,16 @@ describe('parseAmazonProduct', () => {
     const html = `<html>${'x'.repeat(600)}<span class="a-offscreen">12,00€</span></html>`
     assert.equal(parseAmazonProduct(html).price, null)
   })
+
+  it('segna blocked: true sul captcha, senza inventare un prezzo', () => {
+    const html = `<html><title>Amazon</title><p>Enter the characters you see below</p>${'x'.repeat(80)}</html>`
+    const r = parseAmazonProduct(html)
+    assert.equal(r.blocked, true)
+    assert.equal(r.price, null)
+  })
+
+  it('la ricerca captcha non produce schede', () => {
+    const html = `<html><p>Enter the characters you see below</p>${'x'.repeat(100)}</html>`
+    assert.equal(parseAmazonSearch(html, 'Ryzen').length, 0)
+  })
 })

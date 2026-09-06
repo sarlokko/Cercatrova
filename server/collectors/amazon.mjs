@@ -1,12 +1,14 @@
 import { fetchText, parseEuro } from './http.mjs'
 import { titleMatches } from './match.mjs'
+import { looksBlocked, markAmazonBlocked, noteStoreResult, paceAmazon } from './guard.mjs'
 
 /** Estrae un prezzo dal HTML Amazon solo se è ancorato al prodotto, non ai caroselli. */
 export function parseAmazonProduct(html) {
-  if (!html || html.length < 80) return { price: null, available: null, title: null }
+  if (!html) return { price: null, available: null, title: null }
   if (/sorry.*automated|enter the characters|captcha/i.test(html) && html.length < 20000) {
     return { price: null, available: null, title: null, blocked: true }
   }
+  if (html.length < 80) return { price: null, available: null, title: null }
 
   const titleMatch =
     html.match(/id="productTitle"[^>]*>\s*([^<]+)/i) || html.match(/<title>([^<]+)/i)
@@ -73,13 +75,23 @@ export async function amazonProduct(urlOrAsin) {
     ? urlOrAsin
     : `https://www.amazon.it/dp/${urlOrAsin}`
   if (url.includes('/s?')) return { price: null, available: null, title: null, url }
+  if (!(await paceAmazon())) {
+    return { price: null, available: null, title: null, url, blocked: true }
+  }
   const { ok, text, status } = await fetchText(url)
+  const parsed = ok ? parseAmazonProduct(text) : { price: null, available: null, title: null }
+  if (parsed.blocked || looksBlocked(text, status)) {
+    markAmazonBlocked(parsed.blocked ? 'captcha' : `http ${status}`)
+    return { ...parsed, blocked: true, url, status }
+  }
+  noteStoreResult('Amazon', parsed.price != null, { reason: parsed.price == null ? 'no-price' : undefined })
   if (!ok) return { price: null, available: null, title: null, url, status }
-  return { ...parseAmazonProduct(text), url }
+  return { ...parsed, url }
 }
 
 export function parseAmazonSearch(html, query) {
   if (!html || html.length < 80) return []
+  if (looksBlocked(html)) return []
   const seen = new Set()
   const out = []
   const re = /data-asin="([A-Z0-9]{10})"/g
@@ -133,10 +145,20 @@ function amazonCardPrice(chunk) {
 export async function amazonSearch(term) {
   const q = term.trim()
   if (q.length < 3) return []
+  if (!(await paceAmazon())) return []
   const url = `https://www.amazon.it/s?k=${encodeURIComponent(q)}`
-  const { ok, text } = await fetchText(url)
-  if (!ok) return []
-  return parseAmazonSearch(text, q)
+  const { ok, text, status } = await fetchText(url)
+  if (looksBlocked(text, status)) {
+    markAmazonBlocked(`search http ${status}`)
+    return []
+  }
+  if (!ok) {
+    noteStoreResult('Amazon', false, { reason: `search http ${status}` })
+    return []
+  }
+  const hits = parseAmazonSearch(text, q)
+  noteStoreResult('Amazon', hits.length > 0, { reason: hits.length ? undefined : 'search-empty' })
+  return hits
 }
 
 function decode(s) {

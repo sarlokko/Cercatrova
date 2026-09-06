@@ -1,3 +1,4 @@
+import { getDeviceId } from './device'
 import { type Category, type Deal, getDeal, searchDeals, type SearchFilters } from './search-bridge'
 import { withVerdict } from './timing'
 
@@ -31,7 +32,7 @@ function headers(): HeadersInit {
 
 function deviceIdSafe() {
   try {
-    return localStorage.getItem('cercatrova.device.v1') || ''
+    return getDeviceId()
   } catch {
     return ''
   }

@@ -20,6 +20,7 @@ import {
   xboxSearch,
 } from './collectors/console.mjs'
 import { pickBest } from './collectors/match.mjs'
+import { amazonPaused, noteStoreResult } from './collectors/guard.mjs'
 import { assembleProduct } from './product.mjs'
 
 const lastLive = new Map()
@@ -57,7 +58,7 @@ export function listingCanLivePrice(listing) {
   return false
 }
 
-export async function refreshListing(listing) {
+async function refreshListingInner(listing) {
   const store = String(listing.store || '').toLowerCase()
   const product = getProductRow(listing.product_id)
   const title = product?.title || ''
@@ -86,6 +87,9 @@ export async function refreshListing(listing) {
     }
 
     if (store.includes('amazon')) {
+      if (amazonPaused()) {
+        return null
+      }
       const url = listing.url || listing.external_id || ''
       if (isSearchUrl(url) || /\/s\?/.test(url)) {
         const hit = pickBest(await amazonSearch(title || url), title)
@@ -107,6 +111,10 @@ export async function refreshListing(listing) {
         return null
       }
       const live = await amazonProduct(url)
+      if (live?.blocked) {
+        markChecked(listing.id, live?.available ?? null)
+        return null
+      }
       if (live?.price != null) {
         recordPrice(listing.id, live.price, live.available ?? 1)
         return live
@@ -250,7 +258,29 @@ export async function refreshListing(listing) {
 
     markChecked(listing.id)
     return null
-  } catch {
+  } catch (err) {
+    markChecked(listing.id)
+    throw err
+  }
+}
+
+export async function refreshListing(listing) {
+  try {
+    const live = await refreshListingInner(listing)
+    const store = String(listing.store || '')
+    // Amazon si conta già in amazonProduct/amazonSearch (e nel cooldown non deve incrementare).
+    if (!live?.blocked && !store.toLowerCase().includes('amazon')) {
+      noteStoreResult(store, live?.price != null || live?.isFree === true, {
+        productId: listing.product_id,
+        reason: live?.price != null || live?.isFree ? undefined : 'no-price',
+      })
+    }
+    return live
+  } catch (err) {
+    noteStoreResult(listing.store, false, {
+      productId: listing.product_id,
+      reason: err instanceof Error ? err.message : 'refresh',
+    })
     markChecked(listing.id)
     return null
   }
@@ -368,8 +398,10 @@ export async function liveSearchExtras(query, category) {
         const dto = assembleProduct(id)
         if (dto) found.push(dto)
       }
-    } catch {
-      /* GOG down */
+    } catch (err) {
+      noteStoreResult('GOG', false, {
+        reason: err instanceof Error ? err.message : 'search',
+      })
     }
     })(),
     (async () => {
@@ -414,8 +446,10 @@ export async function liveSearchExtras(query, category) {
         const dto = assembleProduct(id)
         if (dto) found.push(dto)
       }
-    } catch {
-      /* Steam down: ignora */
+    } catch (err) {
+      noteStoreResult('Steam', false, {
+        reason: err instanceof Error ? err.message : 'search',
+      })
     }
     })(),
     (async () => {
@@ -465,8 +499,10 @@ export async function liveSearchExtras(query, category) {
           else found.push(dto)
         }
       }
-    } catch {
-      /* Xbox down */
+    } catch (err) {
+      noteStoreResult('Xbox', false, {
+        reason: err instanceof Error ? err.message : 'search',
+      })
     }
     })(),
     ])
@@ -513,8 +549,10 @@ export async function liveSearchExtras(query, category) {
           else found.push(dto)
         }
       }
-    } catch {
-      /* iTunes down */
+    } catch (err) {
+      noteStoreResult('App Store', false, {
+        reason: err instanceof Error ? err.message : 'search',
+      })
     }
   }
 
@@ -555,8 +593,10 @@ export async function liveSearchExtras(query, category) {
           const dto = assembleProduct(id)
           if (dto) found.push(dto)
         }
-      } catch {
-        /* Amazon down: ignora */
+      } catch (err) {
+        noteStoreResult('Amazon', false, {
+          reason: err instanceof Error ? err.message : 'search',
+        })
       }
     }
   }
