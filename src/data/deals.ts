@@ -778,7 +778,7 @@ export const deals: Deal[] = [
         url: 'https://www.gog.com/en/game/stardew_valley',
       },
     ],
-    tags: ['gioco', 'steam', 'indie', 'farm'],
+    tags: ['gioco', 'steam', 'indie', 'farm', 'simulation'],
   }),
   item({
     id: 'steam-hollow-knight',
@@ -803,7 +803,7 @@ export const deals: Deal[] = [
         url: 'https://www.gog.com/en/game/hollow_knight',
       },
     ],
-    tags: ['gioco', 'steam', 'metroidvania'],
+    tags: ['gioco', 'steam', 'metroidvania', 'action', 'adventure', 'platformer'],
   }),
   item({
     id: 'steam-hades',
@@ -828,7 +828,7 @@ export const deals: Deal[] = [
         url: 'https://store.epicgames.com/it/p/hades',
       },
     ],
-    tags: ['gioco', 'steam', 'roguelike', 'hades'],
+    tags: ['gioco', 'steam', 'roguelike', 'hades', 'action'],
   }),
   item({
     id: 'steam-balatro',
@@ -848,7 +848,7 @@ export const deals: Deal[] = [
         url: 'https://store.steampowered.com/app/2379780/Balatro/',
       },
     ],
-    tags: ['gioco', 'steam', 'indie', 'carte'],
+    tags: ['gioco', 'steam', 'indie', 'carte', 'puzzle'],
   }),
   item({
     id: 'steam-bg3',
@@ -903,7 +903,7 @@ export const deals: Deal[] = [
         url: 'https://store.epicgames.com/it/p/cyberpunk-2077',
       },
     ],
-    tags: ['gioco', 'steam', 'rpg', 'cdpr'],
+    tags: ['gioco', 'steam', 'rpg', 'cdpr', 'action', 'open', 'world', 'shooter'],
   }),
   item({
     id: 'steam-witcher3',
@@ -928,7 +928,7 @@ export const deals: Deal[] = [
         url: 'https://www.gog.com/en/game/the_witcher_3_wild_hunt',
       },
     ],
-    tags: ['gioco', 'steam', 'rpg', 'witcher'],
+    tags: ['gioco', 'steam', 'rpg', 'witcher', 'adventure', 'open', 'world'],
   }),
   item({
     id: 'steam-portal2',
@@ -982,7 +982,20 @@ export const deals: Deal[] = [
         url: 'https://store.steampowered.com/search/?term=Grand+Theft+Auto+VI',
       },
     ],
-    tags: ['gioco', 'gta', 'gta6', 'vi', 'prevendita', 'preordine', 'xbox', 'playstation'],
+    tags: [
+      'gioco',
+      'gta',
+      'gta6',
+      'vi',
+      'prevendita',
+      'preordine',
+      'xbox',
+      'playstation',
+      'action',
+      'open',
+      'world',
+      'shooter',
+    ],
   }),
 
   item({
@@ -1193,7 +1206,7 @@ export const deals: Deal[] = [
         url: 'https://play.google.com/store/apps/details?id=com.chucklefish.stardewvalley',
       },
     ],
-    tags: ['android', 'gioco', 'stardew', 'indie', 'farm'],
+    tags: ['android', 'gioco', 'stardew', 'indie', 'farm', 'simulation'],
   }),
   item({
     id: 'and-minecraft',
@@ -1214,7 +1227,7 @@ export const deals: Deal[] = [
         url: 'https://play.google.com/store/apps/details?id=com.mojang.minecraftpe',
       },
     ],
-    tags: ['android', 'gioco', 'minecraft', 'costruzione'],
+    tags: ['android', 'gioco', 'minecraft', 'costruzione', 'survival', 'simulation'],
   }),
   item({
     id: 'and-dead-cells',
@@ -1235,7 +1248,7 @@ export const deals: Deal[] = [
         url: 'https://play.google.com/store/apps/details?id=com.playdigious.deadcells.mobile',
       },
     ],
-    tags: ['android', 'gioco', 'dead cells', 'azione'],
+    tags: ['android', 'gioco', 'dead cells', 'azione', 'action', 'platformer'],
   }),
   item({
     id: 'and-monument',
@@ -1277,7 +1290,7 @@ export const deals: Deal[] = [
         url: 'https://apps.apple.com/it/app/stardew-valley/id1406710800',
       },
     ],
-    tags: ['ios', 'gioco', 'stardew', 'indie', 'farm'],
+    tags: ['ios', 'gioco', 'stardew', 'indie', 'farm', 'simulation'],
   }),
   item({
     id: 'ios-minecraft',
@@ -1298,7 +1311,7 @@ export const deals: Deal[] = [
         url: 'https://apps.apple.com/it/app/minecraft/id479516143',
       },
     ],
-    tags: ['ios', 'gioco', 'minecraft', 'costruzione'],
+    tags: ['ios', 'gioco', 'minecraft', 'costruzione', 'survival', 'simulation'],
   }),
   item({
     id: 'ios-dead-cells',
@@ -1319,7 +1332,7 @@ export const deals: Deal[] = [
         url: 'https://apps.apple.com/it/app/dead-cells/id1389752090',
       },
     ],
-    tags: ['ios', 'gioco', 'dead cells', 'azione'],
+    tags: ['ios', 'gioco', 'dead cells', 'azione', 'action', 'platformer'],
   }),
   item({
     id: 'ios-monument',

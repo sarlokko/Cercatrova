@@ -137,7 +137,7 @@ export const SEED_PRODUCTS = [
     title: 'Stardew Valley',
     subtitle: 'Listino e sconti dal negozio Steam, non da un catalogo fermo.',
     category: 'steam',
-    tags: ['gioco', 'steam', 'indie', 'farm'],
+    tags: ['gioco', 'steam', 'indie', 'farm', 'simulation'],
     imageTone: '#3d5a2a',
     listings: [
       {
@@ -152,7 +152,7 @@ export const SEED_PRODUCTS = [
     title: 'Hollow Knight',
     subtitle: 'Metroidvania. Prezzo live da Steam.',
     category: 'steam',
-    tags: ['gioco', 'steam', 'metroidvania'],
+    tags: ['gioco', 'steam', 'metroidvania', 'action', 'adventure', 'platformer'],
     imageTone: '#1a1a2e',
     listings: [
       {
@@ -167,7 +167,7 @@ export const SEED_PRODUCTS = [
     title: 'Hades',
     subtitle: 'Roguelike Supergiant. Prezzo live da Steam.',
     category: 'steam',
-    tags: ['gioco', 'steam', 'roguelike', 'hades'],
+    tags: ['gioco', 'steam', 'roguelike', 'hades', 'action'],
     imageTone: '#6b1d1d',
     listings: [
       {
@@ -182,7 +182,7 @@ export const SEED_PRODUCTS = [
     title: 'Balatro',
     subtitle: 'Poker-roguelike. Prezzo live da Steam.',
     category: 'steam',
-    tags: ['gioco', 'steam', 'indie', 'carte'],
+    tags: ['gioco', 'steam', 'indie', 'carte', 'puzzle'],
     imageTone: '#c1121f',
     listings: [
       {
@@ -212,7 +212,7 @@ export const SEED_PRODUCTS = [
     title: 'Cyberpunk 2077',
     subtitle: 'Prezzo live da Steam / sconti CDPR.',
     category: 'steam',
-    tags: ['gioco', 'steam', 'rpg', 'cdpr'],
+    tags: ['gioco', 'steam', 'rpg', 'cdpr', 'action', 'open', 'world', 'shooter'],
     imageTone: '#c9a227',
     listings: [
       {
@@ -227,7 +227,7 @@ export const SEED_PRODUCTS = [
     title: 'The Witcher 3: Wild Hunt',
     subtitle: 'Prezzo live da Steam.',
     category: 'steam',
-    tags: ['gioco', 'steam', 'rpg', 'witcher'],
+    tags: ['gioco', 'steam', 'rpg', 'witcher', 'adventure', 'open', 'world'],
     imageTone: '#1b4332',
     listings: [
       {
@@ -258,7 +258,20 @@ export const SEED_PRODUCTS = [
     subtitle:
       'Prevendita. Confronto Xbox, PlayStation Store e i negozi PC: il prezzo solo se lo store risponde.',
     category: 'steam',
-    tags: ['gioco', 'gta', 'gta6', 'vi', 'prevendita', 'preordine', 'xbox', 'playstation'],
+    tags: [
+      'gioco',
+      'gta',
+      'gta6',
+      'vi',
+      'prevendita',
+      'preordine',
+      'xbox',
+      'playstation',
+      'action',
+      'open',
+      'world',
+      'shooter',
+    ],
     imageTone: '#1a472a',
     listings: [
       {
@@ -373,7 +386,7 @@ export const SEED_PRODUCTS = [
     title: 'Stardew Valley (Android)',
     subtitle: 'Gioco su Google Play. Prezzo solo se lo store risponde.',
     category: 'android',
-    tags: ['android', 'gioco', 'stardew', 'indie', 'farm'],
+    tags: ['android', 'gioco', 'stardew', 'indie', 'farm', 'simulation'],
     imageTone: '#3d5a2a',
     listings: [
       {
@@ -388,7 +401,7 @@ export const SEED_PRODUCTS = [
     title: 'Minecraft (Android)',
     subtitle: 'Gioco su Google Play. Prezzo solo se lo store risponde.',
     category: 'android',
-    tags: ['android', 'gioco', 'minecraft', 'costruzione'],
+    tags: ['android', 'gioco', 'minecraft', 'costruzione', 'survival', 'simulation'],
     imageTone: '#5a7d2a',
     listings: [
       {
@@ -403,7 +416,7 @@ export const SEED_PRODUCTS = [
     title: 'Dead Cells (Android)',
     subtitle: 'Gioco d’azione su Google Play. Prezzo solo se lo store risponde.',
     category: 'android',
-    tags: ['android', 'gioco', 'dead cells', 'azione'],
+    tags: ['android', 'gioco', 'dead cells', 'azione', 'action', 'platformer'],
     imageTone: '#6b1d1d',
     listings: [
       {
@@ -433,7 +446,7 @@ export const SEED_PRODUCTS = [
     title: 'Stardew Valley (iOS)',
     subtitle: 'Gioco sull’App Store. Prezzo live da iTunes quando risponde.',
     category: 'ios',
-    tags: ['ios', 'gioco', 'stardew', 'indie', 'farm'],
+    tags: ['ios', 'gioco', 'stardew', 'indie', 'farm', 'simulation'],
     imageTone: '#3d5a2a',
     listings: [
       {
@@ -448,7 +461,7 @@ export const SEED_PRODUCTS = [
     title: 'Minecraft (iOS)',
     subtitle: 'Gioco sull’App Store. Prezzo live da iTunes quando risponde.',
     category: 'ios',
-    tags: ['ios', 'gioco', 'minecraft', 'costruzione'],
+    tags: ['ios', 'gioco', 'minecraft', 'costruzione', 'survival', 'simulation'],
     imageTone: '#5a7d2a',
     listings: [
       {
@@ -463,7 +476,7 @@ export const SEED_PRODUCTS = [
     title: 'Dead Cells (iOS)',
     subtitle: 'Gioco d’azione sull’App Store. Prezzo live da iTunes quando risponde.',
     category: 'ios',
-    tags: ['ios', 'gioco', 'dead cells', 'azione'],
+    tags: ['ios', 'gioco', 'dead cells', 'azione', 'action', 'platformer'],
     imageTone: '#6b1d1d',
     listings: [
       {

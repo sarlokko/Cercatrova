@@ -123,7 +123,10 @@ export function GuideSearch() {
       ) : null}
 
       {!leaf ? (
-        <div className="guide__grid" role="list">
+        <div
+          className={step.choices.length > 8 ? 'guide__grid guide__grid--many' : 'guide__grid'}
+          role="list"
+        >
           {step.choices.map((choice) => (
             <button
               key={choice.id}
