@@ -11,8 +11,9 @@ import {
 } from './db.mjs'
 import { amazonProduct, amazonSearch } from './collectors/amazon.mjs'
 import { officialPrice } from './collectors/official.mjs'
-import { steamAppPrice, steamSearch } from './collectors/steam.mjs'
-import { gameStorefronts, gogSearch, instantGamingSearch, isSearchUrl } from './collectors/stores.mjs'
+import { steamAppPrice, steamSearch, steamSpecials } from './collectors/steam.mjs'
+import { gameStorefronts, gogDeals, gogSearch, instantGamingSearch, isSearchUrl } from './collectors/stores.mjs'
+import { browseKind } from './lib/query-kind.mjs'
 import {
   extractXboxId,
   itunesSearch,
@@ -348,6 +349,7 @@ function slugId(title) {
 export async function liveSearchExtras(query, category) {
   const q = query.trim()
   if (q.length < 2) return []
+  const kind = browseKind(q)
   const wantGames =
     category === 'steam' ||
     (category === 'all' &&
@@ -369,8 +371,10 @@ export async function liveSearchExtras(query, category) {
     await Promise.all([
     (async () => {
     try {
-      const gogHits = await gogSearch(q)
-      for (const hit of gogHits.slice(0, 3)) {
+      const gogHits = (kind === 'specific' ? await gogSearch(q) : await gogDeals(kind === 'any' ? '' : q)).filter(
+        (hit) => kind === 'specific' || !isGameNoiseTitle(hit.title),
+      )
+      for (const hit of gogHits.slice(0, kind === 'specific' ? 3 : 8)) {
         const id = `gog-${hit.externalId || hit.title.toLowerCase().replace(/\s+/g, '-')}`
         upsertProduct({
           id,
@@ -406,7 +410,12 @@ export async function liveSearchExtras(query, category) {
     })(),
     (async () => {
     try {
-      const hits = await steamSearch(q)
+      const hits =
+        kind === 'any'
+          ? await steamSpecials(16)
+          : kind === 'genre'
+            ? [...(await steamSearch(q)), ...(await steamSpecials(8))]
+            : await steamSearch(q)
       const qTokens = q
         .toLowerCase()
         .split(/\s+/)
@@ -415,15 +424,22 @@ export async function liveSearchExtras(query, category) {
             t.length > 1 &&
             !/^(prevendita|preordine|preorder|playstation|xbox|steam|epic|gog)$/.test(t),
         )
+      const seenSteam = new Set()
       for (const hit of hits) {
+        if (!hit?.appId || seenSteam.has(hit.appId)) continue
+        seenSteam.add(hit.appId)
         if (hit.price == null && hit.price !== 0) continue
         const title = String(hit.title || '').toLowerCase()
-        if (qTokens.length && !qTokens.every((t) => title.includes(t))) continue
+        if (kind !== 'specific' && isGameNoiseTitle(hit.title)) continue
+        if (kind === 'specific' && qTokens.length && !qTokens.every((t) => title.includes(t))) continue
         const id = productIdByExternal('Steam', hit.appId) || `steam-${hit.appId}`
         upsertProduct({
           id,
           title: hit.title,
-          subtitle: 'Prezzo dal negozio Steam (live).',
+          subtitle:
+            hit.discountPct > 0
+              ? `Offerta Steam ora: −${hit.discountPct}%. Prezzo live, non un catalogo fermo.`
+              : 'Prezzo dal negozio Steam (live).',
           category: 'steam',
           tags: ['steam', 'gioco', ...q.toLowerCase().split(/\s+/)],
           imageTone: '#1b2838',
@@ -454,7 +470,7 @@ export async function liveSearchExtras(query, category) {
     })(),
     (async () => {
     try {
-      const xboxHits = await xboxSearch(q)
+      const xboxHits = kind === 'any' ? [] : await xboxSearch(q)
       for (const hit of xboxHits.slice(0, 3)) {
         const id =
           (hit.externalId && productIdByExternal('Xbox', hit.externalId)) ||
@@ -510,8 +526,8 @@ export async function liveSearchExtras(query, category) {
 
   if (wantIos) {
     try {
-      let hits = await itunesSearch(q, { gamesOnly: true })
-      if (!hits.length) hits = await itunesSearch(q, { gamesOnly: false })
+      let hits = await itunesSearch(q, { gamesOnly: true, loose: kind !== 'specific' })
+      if (!hits.length) hits = await itunesSearch(q, { gamesOnly: false, loose: kind !== 'specific' })
       for (const hit of hits.slice(0, 4)) {
         const id =
           productIdByExternal('App Store', hit.externalId) ||
@@ -556,52 +572,84 @@ export async function liveSearchExtras(query, category) {
     }
   }
 
+  if (category === 'android' && kind !== 'specific') {
+    try {
+      const hits = await itunesSearch(q, { gamesOnly: true, loose: true })
+      for (const hit of hits.slice(0, 8)) {
+        const id = `and-live-${hit.externalId}`
+        upsertProduct({
+          id,
+          title: hit.title,
+          subtitle: 'Titolo in evidenza ora. Prezzo solo se Google Play risponde.',
+          category: 'android',
+          tags: ['android', 'gioco', ...q.toLowerCase().split(/\s+/)],
+          imageTone: '#3d5a2a',
+          source: 'play-live',
+        })
+        const lid = listingId(id, 'Google Play')
+        upsertListing({
+          id: lid,
+          productId: id,
+          store: 'Google Play',
+          url: `https://play.google.com/store/search?q=${encodeURIComponent(hit.title)}&c=apps`,
+          externalId: hit.externalId,
+        })
+        const dto = assembleProduct(id)
+        if (dto) found.push(dto)
+      }
+    } catch (err) {
+      noteStoreResult('Google Play', false, {
+        reason: err instanceof Error ? err.message : 'search',
+      })
+    }
+  }
+
   if ((amazonish && !wantGames) || category === 'nas' || category === 'pc') {
-    const key = `amz:${q.toLowerCase()}`
-    if (!recently(key, 10 * 60 * 1000)) {
-      try {
-        const hits = await amazonSearch(q)
-        touch(key)
-        for (const hit of hits) {
-          const id = `amz-${hit.asin}`
-          if (getProductRow(id)) {
-            const dto = assembleProduct(id)
-            if (dto) found.push(dto)
-            continue
-          }
-          upsertProduct({
-            id,
-            title: hit.title,
-            subtitle: 'Trovato su Amazon.it. Se il buybox manca, il prezzo resta non disponibile.',
-            category: category === 'all' ? 'nas' : category,
-            tags: ['amazon', ...q.toLowerCase().split(/\s+/)],
-            imageTone: '#1d3557',
-            source: 'amazon',
-          })
-          const lid = listingId(id, 'Amazon')
-          upsertListing({
-            id: lid,
-            productId: id,
-            store: 'Amazon',
-            url: hit.url,
-            externalId: hit.asin,
-            lastPrice: hit.price,
-            available: 1,
-            lastChecked: new Date().toISOString(),
-          })
-          recordPrice(lid, hit.price, 1)
+    try {
+      const hits = await amazonSearch(q)
+      for (const hit of hits) {
+        const id = `amz-${hit.asin}`
+        if (getProductRow(id)) {
           const dto = assembleProduct(id)
           if (dto) found.push(dto)
+          continue
         }
-      } catch (err) {
-        noteStoreResult('Amazon', false, {
-          reason: err instanceof Error ? err.message : 'search',
+        upsertProduct({
+          id,
+          title: hit.title,
+          subtitle: 'Trovato su Amazon.it adesso. Se il buybox manca, il prezzo resta non disponibile.',
+          category: category === 'all' ? 'nas' : category,
+          tags: ['amazon', ...q.toLowerCase().split(/\s+/)],
+          imageTone: '#1d3557',
+          source: 'amazon',
         })
+        const lid = listingId(id, 'Amazon')
+        upsertListing({
+          id: lid,
+          productId: id,
+          store: 'Amazon',
+          url: hit.url,
+          externalId: hit.asin,
+          lastPrice: hit.price,
+          available: 1,
+          lastChecked: new Date().toISOString(),
+        })
+        recordPrice(lid, hit.price, 1)
+        const dto = assembleProduct(id)
+        if (dto) found.push(dto)
       }
+    } catch (err) {
+      noteStoreResult('Amazon', false, {
+        reason: err instanceof Error ? err.message : 'search',
+      })
     }
   }
 
   return found
+}
+
+function isGameNoiseTitle(title) {
+  return /\b(soundtrack|ost|dlc|artbook|wallpaper|pack|bundle|maker)\b/i.test(String(title || ''))
 }
 
 function sleep(ms) {

@@ -1,6 +1,7 @@
 import { fetchText, parseEuro } from './http.mjs'
 import { titleMatches } from './match.mjs'
 import { looksBlocked, markAmazonBlocked, noteStoreResult, paceAmazon } from './guard.mjs'
+import { isBrowseQuery } from '../lib/query-kind.mjs'
 
 /** Estrae un prezzo dal HTML Amazon solo se è ancorato al prodotto, non ai caroselli. */
 export function parseAmazonProduct(html) {
@@ -105,7 +106,7 @@ export function parseAmazonSearch(html, query) {
     if (!name) continue
     const price = amazonCardPrice(chunk)
     if (price == null) continue
-    if (query && !titleMatches(query, name)) continue
+    if (query && !isBrowseQuery(query) && !titleMatches(query, name)) continue
     if (/ups|cavo|modulo|custodia/i.test(name) && !/ups|cavo|modulo|custodia/i.test(query || '')) {
       continue
     }
@@ -115,7 +116,7 @@ export function parseAmazonSearch(html, query) {
       price,
       url: `https://www.amazon.it/dp/${asin}`,
     })
-    if (out.length >= 6) break
+    if (out.length >= 10) break
   }
   return out
 }
@@ -142,9 +143,21 @@ function amazonCardPrice(chunk) {
   return parseEuro(`${String(whole).replace(/[^\d]/g, '')},${frac}`)
 }
 
+const AMAZON_BROWSE = {
+  cpu: 'processore cpu',
+  gpu: 'scheda video gpu',
+  ram: 'memoria ram ddr5',
+  case: 'case pc mid tower',
+  psu: 'alimentatore pc',
+  cooler: 'dissipatore cpu',
+  ssd: 'ssd nvme',
+  nas: 'nas 2 bay',
+}
+
 export async function amazonSearch(term) {
-  const q = term.trim()
-  if (q.length < 3) return []
+  const raw = term.trim()
+  if (raw.length < 3) return []
+  const q = AMAZON_BROWSE[raw.toLowerCase()] || raw
   if (!(await paceAmazon())) return []
   const url = `https://www.amazon.it/s?k=${encodeURIComponent(q)}`
   const { ok, text, status } = await fetchText(url)

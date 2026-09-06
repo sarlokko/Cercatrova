@@ -2,6 +2,7 @@ import { assembleProduct } from './product.mjs'
 import { listCatalog, listingId, upsertListing, upsertProduct } from './db.mjs'
 import { liveSearchExtras, refreshProduct } from './engine.mjs'
 import { gameStorefronts, hardwareStorefronts } from './collectors/stores.mjs'
+import { isBrowseQuery, titleHasSpecific } from './lib/query-kind.mjs'
 
 const STOP = new Set(['per', 'del', 'della', 'dei', 'delle', 'con', 'una', 'uno', 'the', 'and'])
 
@@ -174,32 +175,53 @@ function makeLookup(query, category) {
   return assembleProduct(id)
 }
 
+export function offerScore(d) {
+  if (!d || d.priceUnknown) return -100
+  if (d.isFree) return 80
+  const pct = Number(d.discountPct) || 0
+  const kind = d.verdict?.kind
+  const bonus = kind === 'eccezionale' ? 40 : kind === 'ottimo' ? 25 : kind === 'gratis' ? 50 : 0
+  return pct + bonus
+}
+
 export async function searchProducts(filters) {
-  const seededOnly = !filters.query.trim()
-  const local = listCatalog(filters.category === 'all' ? 'all' : filters.category, { seededOnly })
-    .map((row) => assembleProduct(row.id))
-    .filter(Boolean)
-    .map((d) => ({ d, s: score(d, filters) }))
-    .filter((x) => x.s >= 0)
-    .sort((a, b) => b.s - a.s || (a.d.priceUnknown ? 1 : 0) - (b.d.priceUnknown ? 1 : 0))
-    .map((x) => x.d)
-
-  const stale = local.filter((d) => d.priceUnknown && !d.lookup).slice(0, 4)
-  await Promise.all(stale.map((d) => refreshProduct(d.id, { force: true, quick: true })))
-
   const q = filters.query.trim()
+  const browse = isBrowseQuery(q)
+
   let extra = []
   if (q.length >= 2 && !filters.onlyFree) {
     extra = await liveSearchExtras(q, filters.category)
   }
 
-  const localFresh = local.map((d) => assembleProduct(d.id) || d)
+  let local = listCatalog(filters.category === 'all' ? 'all' : filters.category, {
+    seededOnly: !q,
+  })
+    .map((row) => assembleProduct(row.id))
+    .filter(Boolean)
+    .filter((d) => score(d, filters) >= 0)
 
-  const seen = new Set(localFresh.map((d) => d.id))
-  const merged = [...localFresh]
+  if (browse) {
+    local = extra.length ? [] : local.filter((d) => !d.priceUnknown).slice(0, 4)
+  } else if (q) {
+    local = local.filter((d) => titleHasSpecific(d.title, q))
+  }
+
+  const stale = local.filter((d) => d.priceUnknown && !d.lookup).slice(0, 4)
+  await Promise.all(stale.map((d) => refreshProduct(d.id, { force: true, quick: true })))
+
+  const localFresh = local.map((d) => assembleProduct(d.id) || d)
+  const seen = new Set()
+  const merged = []
   for (const d of extra) {
-    if (seen.has(d.id)) continue
-    if (score(d, { ...filters, query: '' }) < 0) continue
+    if (!d || seen.has(d.id)) continue
+    if (filters.maxPrice != null && !d.priceUnknown && !d.isFree && d.currentPrice > filters.maxPrice) {
+      continue
+    }
+    merged.push(d)
+    seen.add(d.id)
+  }
+  for (const d of localFresh) {
+    if (!d || seen.has(d.id)) continue
     if (filters.maxPrice != null && !d.priceUnknown && !d.isFree && d.currentPrice > filters.maxPrice) {
       continue
     }
@@ -209,7 +231,7 @@ export async function searchProducts(filters) {
 
   const ranked = dedupeByTitle(merged).sort((a, b) => {
     if (a.priceUnknown !== b.priceUnknown) return a.priceUnknown ? 1 : -1
-    return 0
+    return offerScore(b) - offerScore(a)
   })
 
   if (ranked.length) return ranked

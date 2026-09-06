@@ -9,7 +9,7 @@
     "start": "node server/index.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node --test server/verdict.test.mjs server/collectors/amazon.test.mjs server/collectors/guard.test.mjs server/collectors/match.test.mjs server/collectors/console.test.mjs server/search-category.test.mjs server/lib/safe-equal.test.mjs server/lib/device-id.test.mjs src/lib/timing.test.mjs src/lib/guide-genres.test.mjs",
+    "test": "node --test server/verdict.test.mjs server/collectors/amazon.test.mjs server/collectors/guard.test.mjs server/collectors/match.test.mjs server/collectors/console.test.mjs server/search-category.test.mjs server/lib/safe-equal.test.mjs server/lib/device-id.test.mjs server/lib/query-kind.test.mjs src/lib/timing.test.mjs src/lib/guide-genres.test.mjs",
     "preview": "vite preview",
     "pack:nas": "npm run build && cd dist && zip -r ../il-cerca-trova-nas.zip ."
   },

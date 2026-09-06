@@ -110,6 +110,7 @@ export function parseXboxSuggests(json, query) {
   const matched = games.filter((g) => gameTitleMatches(query, g.title))
   if (matched.length) return matched.slice(0, 6)
   if (/\b(gta|gtavi)\b/i.test(query) && games[0]) return [games[0]]
+  if (games.length && !/\s/.test(String(query || '').trim())) return games.slice(0, 6)
   return []
 }
 
@@ -135,14 +136,14 @@ export async function xboxSearch(term) {
   return out
 }
 
-export function parseItunesResults(json, query, { gamesOnly = false } = {}) {
+export function parseItunesResults(json, query, { gamesOnly = false, loose = false } = {}) {
   const rows = Array.isArray(json?.results) ? json.results : []
   const out = []
   for (const r of rows) {
     const title = String(r.trackName || '')
     if (!title) continue
     if (gamesOnly && r.primaryGenreName !== 'Games') continue
-    if (query && !titleMatches(query, title) && !gameTitleMatches(query, title)) continue
+    if (!loose && query && !titleMatches(query, title) && !gameTitleMatches(query, title)) continue
     const price = Number(r.price)
     if (!Number.isFinite(price) || price < 0) continue
     out.push({
@@ -152,15 +153,15 @@ export function parseItunesResults(json, query, { gamesOnly = false } = {}) {
       externalId: String(r.trackId || ''),
       genre: r.primaryGenreName,
     })
-    if (out.length >= 6) break
+    if (out.length >= 8) break
   }
   return out
 }
 
-export async function itunesSearch(term, { gamesOnly = false } = {}) {
+export async function itunesSearch(term, { gamesOnly = false, loose = false } = {}) {
   const q = cleanGameQuery(term)
   if (q.length < 2) return []
-  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=software&country=it&limit=10`
+  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=software&country=it&limit=12`
   const { json } = await fetchJson(url)
-  return parseItunesResults(json, q, { gamesOnly })
+  return parseItunesResults(json, q, { gamesOnly, loose })
 }

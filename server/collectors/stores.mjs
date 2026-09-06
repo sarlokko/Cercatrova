@@ -26,12 +26,30 @@ export function gameStorefronts(title) {
   ]
 }
 
-export async function gogSearch(term) {
+export async function gogSearch(term, { loose = false } = {}) {
   const q = term.trim()
   if (q.length < 2) return []
-  const url = `https://catalog.gog.com/v1/catalog?limit=8&query=${encodeURIComponent(q)}&countryCode=IT&currencyCode=EUR`
-  const { json } = await fetchJson(url)
-  const products = json?.products
+  const url = `https://catalog.gog.com/v1/catalog?limit=12&query=${encodeURIComponent(q)}&countryCode=IT&currencyCode=EUR`
+  return mapGogProducts(await fetchJson(url), q, { loose })
+}
+
+/** Sconti GOG del momento. Senza query = i più scontati in Italia. */
+export async function gogDeals(term = '') {
+  const q = term.trim()
+  const params = new URLSearchParams({
+    limit: '12',
+    countryCode: 'IT',
+    currencyCode: 'EUR',
+    order: 'desc:discount',
+  })
+  if (q.length >= 2) params.set('query', q)
+  return mapGogProducts(await fetchJson(`https://catalog.gog.com/v1/catalog?${params}`), q, {
+    loose: true,
+  })
+}
+
+function mapGogProducts(res, q, { loose = false } = {}) {
+  const products = res?.json?.products
   if (!Array.isArray(products)) return []
   const out = []
   for (const p of products) {
@@ -39,7 +57,7 @@ export async function gogSearch(term) {
     const amount = p.price?.finalMoney?.amount
     const price = amount != null ? parseEuro(String(amount).replace('.', ',')) ?? Number(amount) : null
     if (!title || price == null || !Number.isFinite(price)) continue
-    if (!titleMatches(q, title)) continue
+    if (!loose && q && !titleMatches(q, title)) continue
     out.push({
       title,
       price,

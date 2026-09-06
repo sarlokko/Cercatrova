@@ -76,7 +76,7 @@ function gameKindStep(aside: string): GuideStep {
   return {
     id: 'game-kind',
     question: 'Che genere ti va?',
-    aside: `${aside} Oppure tocca Qualsiasi e cerca in generale.`,
+    aside: `${aside} Qualsiasi = le offerte del momento, non un elenco fisso.`,
     freeLabel: 'Ho già il titolo',
     choices: genreChoices(),
   }
@@ -185,7 +185,7 @@ export const GUIDE_ROOT: GuideStep = {
       next: {
         id: 'game-where',
         question: 'Dove lo vuoi?',
-        aside: 'Confronto Steam, PlayStation Store, Xbox e i key shop. Anche le prevendite.',
+        aside: 'Offerte live di ora, non sempre gli stessi titoli. Steam, PS Store, Xbox e i key shop.',
         freeLabel: 'Ho già il titolo',
         choices: [
           {
@@ -299,7 +299,7 @@ function pcPartsStep(): GuideStep {
   return {
     id: 'pc-part',
     question: 'Che componente ti serve?',
-    aside: 'Scegli la categoria. Poi marca, tipo, quantità — e ti trovo la più adatta.',
+    aside: 'Scegli il tipo. Poi guardo i negozi adesso: marche e modelli cambiano con le offerte.',
     freeLabel: 'Ho già il modello esatto',
     choices: [
       {
