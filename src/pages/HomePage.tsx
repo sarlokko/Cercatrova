@@ -16,15 +16,15 @@ export function HomePage() {
         <div className="section__head">
           <h2>Poi decidi se conviene</h2>
           <p>
-            Tu dici di cosa hai bisogno. Cercatrova trova il pezzo e ti dice se è il momento di
-            comprarlo — non un listino di offerte random.
+            Tu dici di cosa hai bisogno. Cercatrova guarda cosa offre il mercato ora e ti dice se
+            è il momento di comprarlo — non un listino fermo e non un solo modello.
           </p>
         </div>
         <div className="steps steps--3">
           <article className="step">
             <div className="step__n">01</div>
             <h3>Scegli</h3>
-            <p>NAS o componenti: case, CPU, GPU, RAM. Poi marca, tipo, quantità.</p>
+            <p>NAS o componenti: case, CPU, GPU, RAM. Poi la famiglia (AMD, NVIDIA, formato). I modelli arrivano dai negozi.</p>
           </article>
           <article className="step">
             <div className="step__n">02</div>

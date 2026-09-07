@@ -98,7 +98,7 @@ function mobileGameStep(store: 'android' | 'ios'): GuideStep {
 export const GUIDE_ROOT: GuideStep = {
   id: 'root',
   question: 'Cosa stai cercando?',
-  aside: 'Clicca una categoria. Poi ti faccio due o tre domande e ti trovo la più adatta.',
+  aside: 'Clicca una categoria. Poi due o tre domande, e ti mostro le offerte del mercato — non un solo modello.',
   freeLabel: 'Lo so già: scrivo il modello',
   choices: [
     {
@@ -110,7 +110,7 @@ export const GUIDE_ROOT: GuideStep = {
       next: {
         id: 'nas-brand',
         question: 'Bene. Di che marca?',
-        aside: 'Se non sai, scegli “Non importa”: guardo quelli che conviene monitorare.',
+        aside: 'Famiglia, non un solo SKU. I modelli li prendo dai negozi adesso.',
         choices: [
           {
             id: 'ugreen',
@@ -120,12 +120,12 @@ export const GUIDE_ROOT: GuideStep = {
             next: {
               id: 'nas-bays',
               question: 'Quanti vani (bay)?',
-              aside: 'I dischi si comprano a parte.',
+              aside: 'I dischi si comprano a parte. Guardo tutta la fascia, non un solo DXP.',
               choices: [
-                { id: '2bay', label: '2 vani', query: '2-bay dxp2800' },
-                { id: '4bay', label: '4 vani', query: '4-bay dxp4800' },
-                { id: 'piu', label: '6 o più', query: '6-bay' },
-                { id: 'bo', label: 'Non lo so', query: 'nas' },
+                { id: '2bay', label: '2 vani', query: '2 bay' },
+                { id: '4bay', label: '4 vani', query: '4 bay' },
+                { id: 'piu', label: '6 o più', query: '6 bay' },
+                { id: 'bo', label: 'Tutto il mercato', query: '' },
               ],
             },
           },
@@ -137,17 +137,17 @@ export const GUIDE_ROOT: GuideStep = {
             next: {
               id: 'syno-bays',
               question: 'Quanti vani?',
-              aside: 'DS224+ è il 2-bay più cercato.',
+              aside: 'Tutta la famiglia DiskStation, non un solo DS224+.',
               choices: [
-                { id: 's2', label: '2 vani', query: 'ds224' },
-                { id: 's4', label: '4 vani', query: 'ds923' },
-                { id: 'sbo', label: 'Non lo so', query: 'diskstation' },
+                { id: 's2', label: '2 vani', query: '2 bay' },
+                { id: 's4', label: '4 vani', query: '4 bay' },
+                { id: 'sbo', label: 'Tutto il mercato', query: '' },
               ],
             },
           },
           { id: 'qnap', label: 'QNAP', query: 'qnap nas' },
           { id: 'terra', label: 'TerraMaster', query: 'terramaster nas' },
-          { id: 'any-nas', label: 'Non importa', hint: 'scegli tu', query: 'nas 2-bay' },
+          { id: 'any-nas', label: 'Tutto il mercato', hint: 'tutte le marche', query: 'nas' },
         ],
       },
     },
@@ -167,13 +167,13 @@ export const GUIDE_ROOT: GuideStep = {
       next: {
         id: 'hdd-size',
         question: 'Quanta capacità?',
-        aside: 'Per un NAS meglio CMR (WD Red Plus, IronWolf).',
+        aside: 'Per un NAS meglio CMR. Guardo WD Red, IronWolf e gli altri, non un solo disco.',
         choices: [
           { id: '4tb', label: '4 TB', query: '4tb' },
           { id: '8tb', label: '8 TB', query: '8tb' },
-          { id: '12tb', label: '12 TB', query: '12tb red plus' },
+          { id: '12tb', label: '12 TB', query: '12tb' },
           { id: '16tb', label: '16 TB', query: '16tb' },
-          { id: 'hdd-bo', label: 'Non lo so', query: 'wd red' },
+          { id: 'hdd-bo', label: 'Tutto il mercato', query: '' },
         ],
       },
     },
@@ -246,11 +246,12 @@ export const GUIDE_ROOT: GuideStep = {
       next: {
         id: 'and-kind',
         question: 'A cosa ti serve?',
-        aside: 'Android e iOS sono store separati. I giochi stanno nel Play Store.',
+        aside: 'Android e iOS sono store separati. Categoria, non una sola app.',
         choices: [
-          { id: 'a-focus', label: 'Focus / produttività', query: 'focus' },
+          { id: 'a-focus', label: 'Focus / produttività', query: 'produttivita' },
           { id: 'a-file', label: 'File e automazione', query: 'file manager' },
-          { id: 'a-music', label: 'Musica', query: 'player' },
+          { id: 'a-music', label: 'Musica', query: 'player musica' },
+          { id: 'a-draw', label: 'Disegno', query: 'disegno' },
           { id: 'a-game', label: 'Un gioco', hint: 'Play Store', next: mobileGameStep('android') },
           { id: 'a-any', label: 'Ho già il nome', query: '' },
         ],
@@ -265,11 +266,12 @@ export const GUIDE_ROOT: GuideStep = {
       next: {
         id: 'ios-kind',
         question: 'A cosa ti serve?',
-        aside: 'Le promo “da a pagamento a gratis” arrivano a ondate. I giochi stanno sull’App Store.',
+        aside: 'Le promo arrivano a ondate. Categoria, non Procreate o Things da soli.',
         choices: [
-          { id: 'i-draw', label: 'Disegno', query: 'procreate' },
-          { id: 'i-todo', label: 'Liste / GTD', query: 'things' },
-          { id: 'i-focus', label: 'Focus', query: 'forest' },
+          { id: 'i-draw', label: 'Disegno', query: 'disegno' },
+          { id: 'i-todo', label: 'Liste / GTD', query: 'todo' },
+          { id: 'i-focus', label: 'Focus', query: 'focus' },
+          { id: 'i-office', label: 'Ufficio e PDF', query: 'office' },
           { id: 'i-game', label: 'Un gioco', hint: 'App Store', next: mobileGameStep('ios') },
           { id: 'i-any', label: 'Ho già il nome', query: '' },
         ],
@@ -284,10 +286,12 @@ export const GUIDE_ROOT: GuideStep = {
       next: {
         id: 'soft-kind',
         question: 'Che tipo di programma?',
-        aside: 'Se è davvero gratis (LibreOffice, VLC) te lo dico. Niente fake giveaway.',
+        aside: 'Categoria, non un solo programma. Se è davvero gratis te lo dico.',
         choices: [
           { id: 'office', label: 'Office / documenti', query: 'office' },
-          { id: 'player', label: 'Video / musica', query: 'vlc' },
+          { id: 'draw', label: 'Disegno e grafica', query: 'disegno' },
+          { id: 'todo', label: 'Note e to-do', query: 'todo' },
+          { id: 'player', label: 'Video / musica', query: 'lettore video' },
           { id: 'soft-any', label: 'Ho già il nome', query: '' },
         ],
       },
@@ -312,21 +316,15 @@ function pcPartsStep(): GuideStep {
           question: 'Che formato?',
           aside: 'Mid-tower è il più comune. Mini-ITX se vuoi piccolo.',
           choices: [
-            {
-              id: 'mid',
-              label: 'Mid-tower',
-              query: 'mid-tower atx',
-              next: caseBrand('mid-tower'),
-            },
+            { id: 'mid', label: 'Mid-tower', query: 'mid-tower atx' },
             {
               id: 'itx',
               label: 'Mini-ITX',
               hint: 'compatto',
               query: 'mini-itx',
-              next: caseBrand('mini-itx'),
             },
             { id: 'full', label: 'Full-tower', query: 'full-tower' },
-            { id: 'case-bo', label: 'Non importa', query: 'case mid-tower' },
+            { id: 'case-bo', label: 'Tutto il mercato', query: 'case pc' },
           ],
         },
       },
@@ -338,42 +336,22 @@ function pcPartsStep(): GuideStep {
         next: {
           id: 'cpu-brand',
           question: 'AMD o Intel?',
-          aside: 'Poi ti chiedo la fascia. Se hai già il modello, scrivilo sotto.',
+          aside:
+            'Famiglia, non un solo chip. I modelli li prendo dai negozi adesso. Se hai già il numero, scrivilo.',
           choices: [
             {
               id: 'amd',
-              label: 'AMD',
-              hint: 'Ryzen, AM5',
+              label: 'AMD Ryzen',
+              hint: 'tutta la famiglia',
               query: 'ryzen',
-              next: {
-                id: 'amd-tier',
-                question: 'Quale Ryzen?',
-                aside: 'Il 7800X3D è il più cercato per il gaming.',
-                choices: [
-                  { id: 'r5', label: 'Ryzen 5', hint: '7600 e simili', query: 'ryzen 5 7600' },
-                  { id: 'r7x3d', label: 'Ryzen 7 X3D', hint: '7800X3D', query: '7800x3d' },
-                  { id: 'r7', label: 'Ryzen 7', hint: '9700X', query: '9700x' },
-                  { id: 'amd-bo', label: 'Non lo so', query: 'ryzen cpu' },
-                ],
-              },
             },
             {
               id: 'intel',
               label: 'Intel',
-              hint: 'Core / Ultra',
-              query: 'intel',
-              next: {
-                id: 'intel-tier',
-                question: 'Quale Intel?',
-                aside: '14600K è LGA1700. Ultra 7 è la generazione nuova (LGA1851).',
-                choices: [
-                  { id: 'i5', label: 'Core i5', hint: '14600K', query: '14600k' },
-                  { id: 'u7', label: 'Core Ultra 7', hint: '265K', query: '265k' },
-                  { id: 'intel-bo', label: 'Non lo so', query: 'intel cpu' },
-                ],
-              },
+              hint: 'Core e Ultra',
+              query: 'intel cpu',
             },
-            { id: 'cpu-bo', label: 'Non importa', query: 'cpu' },
+            { id: 'cpu-bo', label: 'Tutto il mercato', hint: 'AMD e Intel', query: 'cpu' },
           ],
         },
       },
@@ -385,41 +363,21 @@ function pcPartsStep(): GuideStep {
         next: {
           id: 'gpu-brand',
           question: 'NVIDIA o AMD?',
-          aside: 'I listini saltano: se non conviene, ti avviso io.',
+          aside: 'Tutta la serie in offerta ora, non una sola scheda. Se hai già il modello, scrivilo.',
           choices: [
             {
               id: 'nvidia',
-              label: 'NVIDIA',
-              hint: 'GeForce RTX',
+              label: 'NVIDIA GeForce RTX',
+              hint: 'tutta la famiglia',
               query: 'rtx',
-              next: {
-                id: 'rtx-tier',
-                question: 'Quale RTX?',
-                aside: '5060 Ti / 5070 / 5080. Se hai già il modello, scrivilo.',
-                choices: [
-                  { id: '5060', label: 'RTX 5060 Ti', query: '5060 ti' },
-                  { id: '5070', label: 'RTX 5070', query: '5070' },
-                  { id: '5080', label: 'RTX 5080', query: '5080' },
-                  { id: 'rtx-bo', label: 'Non lo so', query: 'rtx gpu' },
-                ],
-              },
             },
             {
               id: 'amdgpu',
-              label: 'AMD',
-              hint: 'Radeon',
+              label: 'AMD Radeon',
+              hint: 'tutta la famiglia',
               query: 'radeon',
-              next: {
-                id: 'rx-tier',
-                question: 'Quale Radeon?',
-                aside: '9070 XT è la fascia alta recente.',
-                choices: [
-                  { id: '9070', label: 'RX 9070 XT', query: '9070 xt' },
-                  { id: 'rx-bo', label: 'Guarda tu', query: 'radeon gpu' },
-                ],
-              },
             },
-            { id: 'gpu-bo', label: 'Non importa', query: 'gpu' },
+            { id: 'gpu-bo', label: 'Tutto il mercato', query: 'gpu' },
           ],
         },
       },
@@ -436,7 +394,7 @@ function pcPartsStep(): GuideStep {
             { id: 'ddr5', label: 'DDR5', query: 'ddr5 dimm', next: ramAmount('ddr5') },
             { id: 'ddr4', label: 'DDR4', query: 'ddr4', next: ramAmount('ddr4') },
             { id: 'sodimm', label: 'SODIMM (NAS / laptop)', query: 'sodimm', next: ramAmount('sodimm') },
-            { id: 'ram-bo', label: 'Non lo so', query: 'ram' },
+            { id: 'ram-bo', label: 'Tutto il mercato', query: 'ram' },
           ],
         },
       },
@@ -448,12 +406,12 @@ function pcPartsStep(): GuideStep {
         next: {
           id: 'mobo-sock',
           question: 'Che socket?',
-          aside: 'Deve combaciare con la CPU. AM5 = Ryzen 7000/9000. LGA1851 = Ultra.',
+          aside: 'Deve combaciare con la CPU. Famiglia di socket, non una sola scheda.',
           choices: [
-            { id: 'am5', label: 'AM5', hint: 'Ryzen 7000/9000', query: 'b650 am5' },
-            { id: 'lga1700', label: 'LGA1700', hint: '12ª–14ª gen', query: 'z790 lga1700' },
-            { id: 'lga1851', label: 'LGA1851', hint: 'Core Ultra', query: 'z890 lga1851' },
-            { id: 'mobo-bo', label: 'Non lo so', query: 'scheda madre' },
+            { id: 'am5', label: 'AM5', hint: 'Ryzen 7000/9000', query: 'am5' },
+            { id: 'lga1700', label: 'LGA1700', hint: '12ª–14ª gen', query: 'lga1700' },
+            { id: 'lga1851', label: 'LGA1851', hint: 'Core Ultra', query: 'lga1851' },
+            { id: 'mobo-bo', label: 'Tutto il mercato', query: 'scheda madre' },
           ],
         },
       },
@@ -465,13 +423,13 @@ function pcPartsStep(): GuideStep {
         next: {
           id: 'psu-w',
           question: 'Quanti watt?',
-          aside: '750 W sta su un 5070. 1000 W se punti in alto.',
+          aside: 'Fascia di watt, non un solo modello. 750 W sta su una GPU media.',
           choices: [
             { id: 'w650', label: '650 W', query: '650w alimentatore' },
             { id: 'w750', label: '750 W', query: '750w' },
             { id: 'w850', label: '850 W', query: '850w' },
             { id: 'w1000', label: '1000 W', query: '1000w' },
-            { id: 'psu-bo', label: 'Non lo so', query: 'alimentatore gold' },
+            { id: 'psu-bo', label: 'Tutto il mercato', query: 'alimentatore' },
           ],
         },
       },
@@ -488,7 +446,7 @@ function pcPartsStep(): GuideStep {
             { id: 'air', label: 'Aria', query: 'dissipatore aria' },
             { id: 'aio240', label: 'AIO 240 mm', query: 'aio 240' },
             { id: 'aio360', label: 'AIO 360 mm', query: 'aio 360' },
-            { id: 'cool-bo', label: 'Non lo so', query: 'dissipatore' },
+            { id: 'cool-bo', label: 'Tutto il mercato', query: 'dissipatore' },
           ],
         },
       },
@@ -504,25 +462,10 @@ function pcPartsStep(): GuideStep {
           choices: [
             { id: 'nvme', label: 'NVMe', query: 'nvme', next: ssdSize('nvme') },
             { id: 'sata', label: 'SATA 2,5"', query: 'sata ssd', next: ssdSize('sata ssd') },
-            { id: 'ssd-bo', label: 'Non lo so', query: 'ssd 2tb' },
+            { id: 'ssd-bo', label: 'Tutto il mercato', query: 'ssd' },
           ],
         },
       },
-    ],
-  }
-}
-
-function caseBrand(prefix: string): GuideStep {
-  return {
-    id: `case-brand-${prefix}`,
-    question: 'Di che marca?',
-    aside: 'Se non sai, “Non importa”: guardo i mid-tower che si cercano di più.',
-    choices: [
-      { id: 'fractal', label: 'Fractal', hint: 'North', query: 'fractal north' },
-      { id: 'lianli', label: 'Lian Li', hint: 'Lancool', query: 'lian li lancool' },
-      { id: 'corsair', label: 'Corsair', hint: '4000D', query: 'corsair 4000d' },
-      { id: 'nzxt', label: 'NZXT', query: 'nzxt h5' },
-      { id: 'case-any', label: 'Non importa', query: 'case' },
     ],
   }
 }
@@ -531,7 +474,7 @@ function ramAmount(prefix: string): GuideStep {
   return {
     id: `ram-amt-${prefix}`,
     question: 'Quanta te ne serve?',
-    aside: 'Dimmi i gigabyte. Poi ti trovo la più adatta — non un prezzo inventato.',
+    aside: 'Dimmi i gigabyte. Poi guardo i kit in offerta — non un prezzo inventato.',
     freeLabel: 'Un’altra quantità',
     choices: [
       { id: '16', label: '16 GB', query: '16gb' },

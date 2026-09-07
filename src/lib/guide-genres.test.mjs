@@ -35,4 +35,17 @@ describe('generi nella guida giochi', () => {
     assert.doesNotMatch(src, /query: 'dead cells'/)
     assert.doesNotMatch(src, /query: 'minecraft'/)
   })
+
+  it('non chiude CPU, GPU, case, NAS e app su un solo SKU', () => {
+    assert.doesNotMatch(src, /query: '7800x3d'/)
+    assert.doesNotMatch(src, /query: '5070'/)
+    assert.doesNotMatch(src, /query: '5060 ti'/)
+    assert.doesNotMatch(src, /query: 'fractal north'/)
+    assert.doesNotMatch(src, /query: 'dxp2800'/)
+    assert.doesNotMatch(src, /query: 'procreate'/)
+    assert.doesNotMatch(src, /query: 'things'/)
+    assert.match(src, /query: 'ryzen'/)
+    assert.match(src, /query: 'rtx'/)
+    assert.match(src, /query: 'radeon'/)
+  })
 })

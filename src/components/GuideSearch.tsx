@@ -83,7 +83,7 @@ export function GuideSearch() {
 
   const closer = !searched
     ? leaf
-      ? `Ottimo. Ti trovo la più adatta per ${path.map((c) => c.label).join(' · ').toLowerCase()}.`
+      ? `Ottimo. Ti mostro le offerte del mercato per ${path.map((c) => c.label).join(' · ').toLowerCase()} — non un solo modello.`
       : typed.trim()
         ? `Cerco “${typed.trim()}”.`
         : step.aside

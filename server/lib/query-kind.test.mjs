@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { browseKind, isBrowseQuery, titleHasSpecific } from './query-kind.mjs'
+import { browseKind, expandMarketQueries, isBrowseQuery, titleHasSpecific } from './query-kind.mjs'
 import { offerScore } from '../search.mjs'
 import { parseSteamFeatured } from '../collectors/steam.mjs'
 
@@ -17,9 +17,31 @@ describe('isBrowseQuery', () => {
     assert.equal(browseKind('ryzen 7 7800x3d'), 'specific')
   })
 
+  it('tratta le famiglie di mercato come browse, non un solo SKU', () => {
+    assert.equal(isBrowseQuery('ryzen'), true)
+    assert.equal(isBrowseQuery('intel cpu'), true)
+    assert.equal(isBrowseQuery('rtx'), true)
+    assert.equal(isBrowseQuery('radeon'), true)
+    assert.equal(isBrowseQuery('gpu'), true)
+    assert.equal(isBrowseQuery('ugreen nasync 2 bay'), true)
+    assert.equal(isBrowseQuery('rtx 5070'), false)
+    assert.equal(isBrowseQuery('14600k'), false)
+  })
+
   it('accetta un titolo specifico, non un tag generico', () => {
     assert.equal(titleHasSpecific('Baldur’s Gate 3', 'rpg'), false)
     assert.equal(titleHasSpecific('Baldur’s Gate 3', 'baldur gate'), true)
+  })
+})
+
+describe('expandMarketQueries', () => {
+  it('apre CPU e GPU a due ricerche, non un modello solo', () => {
+    assert.deepEqual(expandMarketQueries('cpu'), ['processore amd ryzen', 'processore intel core'])
+    assert.deepEqual(expandMarketQueries('gpu'), ['scheda video nvidia rtx', 'scheda video amd radeon'])
+    assert.deepEqual(expandMarketQueries('ryzen'), ['processore amd ryzen'])
+    assert.deepEqual(expandMarketQueries('rtx'), ['scheda video nvidia rtx'])
+    assert.deepEqual(expandMarketQueries('7800x3d'), ['7800x3d'])
+    assert.deepEqual(expandMarketQueries('rtx 5070'), ['rtx 5070'])
   })
 })
 

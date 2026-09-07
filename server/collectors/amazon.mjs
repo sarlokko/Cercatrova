@@ -1,7 +1,7 @@
 import { fetchText, parseEuro } from './http.mjs'
 import { titleMatches } from './match.mjs'
 import { looksBlocked, markAmazonBlocked, noteStoreResult, paceAmazon } from './guard.mjs'
-import { isBrowseQuery } from '../lib/query-kind.mjs'
+import { expandMarketQueries, isBrowseQuery } from '../lib/query-kind.mjs'
 
 /** Estrae un prezzo dal HTML Amazon solo se è ancorato al prodotto, non ai caroselli. */
 export function parseAmazonProduct(html) {
@@ -90,12 +90,13 @@ export async function amazonProduct(urlOrAsin) {
   return { ...parsed, url }
 }
 
-export function parseAmazonSearch(html, query) {
+export function parseAmazonSearch(html, query, { max = 16, browse } = {}) {
   if (!html || html.length < 80) return []
   if (looksBlocked(html)) return []
   const seen = new Set()
   const out = []
   const re = /data-asin="([A-Z0-9]{10})"/g
+  const family = browse === true || (query ? isBrowseQuery(query) : false)
   let m
   while ((m = re.exec(html))) {
     const asin = m[1]
@@ -106,19 +107,62 @@ export function parseAmazonSearch(html, query) {
     if (!name) continue
     const price = amazonCardPrice(chunk)
     if (price == null) continue
-    if (query && !isBrowseQuery(query) && !titleMatches(query, name)) continue
-    if (/ups|cavo|modulo|custodia/i.test(name) && !/ups|cavo|modulo|custodia/i.test(query || '')) {
-      continue
-    }
+    if (isAccessoryTitle(name, query)) continue
+    if (query && !family && !titleMatches(query, name)) continue
+    if (query && family && !titleFitsFamily(query, name)) continue
     out.push({
       asin,
       title: name,
       price,
       url: `https://www.amazon.it/dp/${asin}`,
     })
-    if (out.length >= 10) break
+    if (out.length >= max) break
   }
   return out
+}
+
+function isAccessoryTitle(name, query) {
+  const n = String(name || '')
+  const q = String(query || '')
+  if (/pasta termica|thermal paste|anti-sag|gpu sag|staffa (gpu|scheda)|riser pcie/i.test(n)) {
+    return true
+  }
+  if (/cavo (hdmi|displayport|dp\b|usb)|hdmi 2\.\d/i.test(n) && !/cavo|hdmi/i.test(q)) {
+    return true
+  }
+  if (/custodia|pellicola/i.test(n) && !/custodia|cover/i.test(q)) return true
+  return false
+}
+
+/** Browse: tieni CPU/GPU vere, non il primo oggetto del carosello. */
+export function titleFitsFamily(query, title) {
+  const q = String(query || '').toLowerCase()
+  const t = String(title || '').toLowerCase()
+  if (/\b(cpu|processore|ryzen|intel core)\b/.test(q)) {
+    return /\b(ryzen|threadripper|intel|core i[3579]|core ultra|processore|cpu|xeon)\b/i.test(t)
+  }
+  if (/\b(gpu|rtx|radeon|geforce|scheda video)\b/.test(q)) {
+    return /\b(rtx|geforce|radeon|rx \d|scheda (video|grafica)|gpu)\b/i.test(t)
+  }
+  if (/\b(ram|ddr5|ddr4|sodimm)\b/.test(q)) {
+    return /\b(ram|ddr4|ddr5|sodimm|dimm|memoria)\b/i.test(t)
+  }
+  if (/\b(ssd|nvme)\b/.test(q)) {
+    return /\b(ssd|nvme|m\.2|sata)\b/i.test(t)
+  }
+  if (/\b(psu|alimentatore)\b/.test(q)) {
+    return /\b(alimentatore|psu|\d+\s*w|watt)\b/i.test(t)
+  }
+  if (/\b(case|cabinet|mid tower|mini itx|full tower)\b/.test(q)) {
+    return /\b(case|cabinet|tower|itx|chassis)\b/i.test(t)
+  }
+  if (/\b(scheda madre|motherboard|am5|z790|z890)\b/.test(q)) {
+    return /\b(scheda madre|motherboard|mainboard|am5|lga)\b/i.test(t)
+  }
+  if (/\bnas\b/.test(q)) {
+    return /\bnas\b/i.test(t)
+  }
+  return true
 }
 
 function amazonCardTitle(chunk) {
@@ -154,24 +198,53 @@ const AMAZON_BROWSE = {
   nas: 'nas 2 bay',
 }
 
-export async function amazonSearch(term) {
-  const raw = term.trim()
+export async function amazonSearch(term, opts = {}) {
+  const raw = String(term || '').trim()
   if (raw.length < 3) return []
-  const q = AMAZON_BROWSE[raw.toLowerCase()] || raw
-  if (!(await paceAmazon())) return []
-  const url = `https://www.amazon.it/s?k=${encodeURIComponent(q)}`
-  const { ok, text, status } = await fetchText(url)
-  if (looksBlocked(text, status)) {
-    markAmazonBlocked(`search http ${status}`)
-    return []
+  const browse = isBrowseQuery(raw)
+  const pages = opts.pages ?? (browse ? 2 : 1)
+  const max = opts.max ?? (browse ? 24 : 10)
+  const queries = browse ? expandMarketQueries(raw) : [AMAZON_BROWSE[raw.toLowerCase()] || raw]
+  const perQuery = queries.length > 1 ? Math.max(8, Math.ceil(max / queries.length)) : max
+  const seen = new Set()
+  const out = []
+
+  for (const q of queries) {
+    let fromThis = 0
+    for (let page = 1; page <= pages; page++) {
+      if (fromThis >= perQuery) break
+      if (!(await paceAmazon())) return out
+      const url =
+        page === 1
+          ? `https://www.amazon.it/s?k=${encodeURIComponent(q)}`
+          : `https://www.amazon.it/s?k=${encodeURIComponent(q)}&page=${page}`
+      const { ok, text, status } = await fetchText(url)
+      if (looksBlocked(text, status)) {
+        markAmazonBlocked(`search http ${status}`)
+        return out
+      }
+      if (!ok) {
+        noteStoreResult('Amazon', false, { reason: `search http ${status}` })
+        break
+      }
+      const hits = parseAmazonSearch(text, q, { max: 16, browse })
+      if (!hits.length) break
+      for (const hit of hits) {
+        if (seen.has(hit.asin)) continue
+        seen.add(hit.asin)
+        out.push(hit)
+        fromThis++
+        if (out.length >= max) {
+          noteStoreResult('Amazon', true)
+          return out
+        }
+        if (fromThis >= perQuery) break
+      }
+    }
   }
-  if (!ok) {
-    noteStoreResult('Amazon', false, { reason: `search http ${status}` })
-    return []
-  }
-  const hits = parseAmazonSearch(text, q)
-  noteStoreResult('Amazon', hits.length > 0, { reason: hits.length ? undefined : 'search-empty' })
-  return hits
+
+  noteStoreResult('Amazon', out.length > 0, { reason: out.length ? undefined : 'search-empty' })
+  return out
 }
 
 function decode(s) {

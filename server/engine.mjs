@@ -346,6 +346,20 @@ function slugId(title) {
     .slice(0, 40)
 }
 
+function liveAmazonCategory(category, q) {
+  if (category && category !== 'all') return category
+  const t = String(q || '').toLowerCase()
+  if (/\b(office|software|adobe|libreoffice|microsoft)\b/.test(t)) return 'software'
+  if (
+    /\b(nas|ugreen|synology|qnap|nasync|dxp|ironwolf)\b/.test(t) &&
+    !/\b(cpu|gpu|ryzen|rtx|ram|ssd|nvme)\b/.test(t)
+  ) {
+    return 'nas'
+  }
+  if (/\b(hdd|wd red)\b/.test(t)) return 'nas'
+  return 'pc'
+}
+
 export async function liveSearchExtras(query, category) {
   const q = query.trim()
   if (q.length < 2) return []
@@ -618,7 +632,7 @@ export async function liveSearchExtras(query, category) {
           id,
           title: hit.title,
           subtitle: 'Trovato su Amazon.it adesso. Se il buybox manca, il prezzo resta non disponibile.',
-          category: category === 'all' ? 'nas' : category,
+          category: liveAmazonCategory(category, q),
           tags: ['amazon', ...q.toLowerCase().split(/\s+/)],
           imageTone: '#1d3557',
           source: 'amazon',

@@ -47,6 +47,38 @@ describe('parseAmazonProduct', () => {
     assert.equal(parseAmazonSearch(html, 'Ryzen 7 7800X3D').length, 0)
   })
 
+  it('in browse tiene più processori e scarta pasta e cavi', () => {
+    const card = (asin, title, price) => `
+      <div data-asin="${asin}" data-component-type="s-search-result">
+        <h2 class="a-size-mini"><a><span>${title}</span></a></h2>
+        ${'x'.repeat(2000)}
+        <span class="a-price"><span class="a-offscreen">${price}</span></span>
+      </div>
+    `
+    const html = [
+      card('B0RYZEN760', 'Processore AMD Ryzen 5 7600 6 core', '189,00 €'),
+      card('B0RYZEN970', 'Processore AMD Ryzen 7 9700X 8 core', '329,00 €'),
+      card('B0INTEL146', 'Intel Core i5-14600K processore', '279,00 €'),
+      card('B0PASTATER', 'Pasta termica per CPU 4g', '8,99 €'),
+      card('B0HDMI0001', 'Cavo HDMI 2.1 2 metri nero', '9,99 €'),
+    ].join('')
+    const hits = parseAmazonSearch(html, 'cpu', { browse: true })
+    assert.equal(hits.length, 3)
+    assert.ok(hits.every((h) => /ryzen|intel/i.test(h.title)))
+  })
+
+  it('non scarta un alimentatore solo perché ha cavi modulari', () => {
+    const html = `
+      <div data-asin="B0PSUGOLD7">
+        <h2><span>Alimentatore 750W 80 Plus Gold cavi modulari</span></h2>
+        ${'x'.repeat(2000)}
+        <span class="a-offscreen">99,90 €</span>
+      </div>
+    `
+    const hits = parseAmazonSearch(html, 'alimentatore 750w', { browse: true })
+    assert.equal(hits.length, 1)
+  })
+
   it('senza segnale affidabile torna null, non il primo a-offscreen', () => {
     const html = `<html>${'x'.repeat(600)}<span class="a-offscreen">12,00€</span></html>`
     assert.equal(parseAmazonProduct(html).price, null)

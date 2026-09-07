@@ -172,10 +172,10 @@ export function searchDeals(filters: SearchFilters, source: Deal[] = deals): Dea
 }
 
 export const genericSuggestions = [
-  { label: 'UGREEN NAS', query: 'ugreen 2800', category: 'nas' as const },
+  { label: 'UGREEN NAS', query: 'ugreen nas', category: 'nas' as const },
   { label: 'RAM DDR5', query: 'ram ddr5 32gb', category: 'pc' as const },
-  { label: 'CPU Ryzen', query: 'ryzen 7800x3d', category: 'pc' as const },
-  { label: 'GPU RTX', query: 'rtx 5070', category: 'pc' as const },
+  { label: 'CPU Ryzen', query: 'ryzen', category: 'pc' as const },
+  { label: 'GPU RTX', query: 'rtx', category: 'pc' as const },
   { label: 'HDD NAS', query: 'hdd nas', category: 'nas' as const },
   { label: 'Giochi in sconto', query: 'steam sconto', category: 'steam' as const },
   { label: 'Prevendita GTA VI', query: 'gta vi', category: 'steam' as const },
